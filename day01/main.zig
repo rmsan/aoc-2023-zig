@@ -15,31 +15,32 @@ pub fn main() !void {
 }
 
 fn solvePart1(input: []const u8) !usize {
-    var firstDigit: ?u8 = null;
-    var lastDigit: ?u8 = null;
+    var firstDigit: usize = 0;
+    var lastDigit: usize = 0;
     for (input) |char| {
-        if (char < '0' or char > '9') {
+        if (!std.ascii.isDigit(char)) {
             continue;
         }
         const digit = char - '0';
-        if (firstDigit == null) {
+        if (firstDigit == 0) {
             firstDigit = digit;
         }
         lastDigit = digit;
     }
 
-    return 10 * firstDigit.? + lastDigit.?;
+    return 10 * firstDigit + lastDigit;
 }
 
 const NUMBERS = [_][]const u8{ "one", "two", "three", "four", "five", "six", "seven", "eight", "nine" };
 
 fn solvePart2(input: []const u8) !usize {
-    var firstDigit: ?usize = null;
-    var lastDigit: ?usize = null;
+    var firstDigit: usize = 0;
+    var lastDigit: usize = 0;
     for (input, 0..) |char, i| {
         var digit: ?usize = null;
-        if (char < '0' or char > '9') {
+        if (!std.ascii.isDigit(char)) {
             for (NUMBERS, 1..) |numberChar, j| {
+                // std.ascii.startsWithIgnoreCase also possible
                 if (std.mem.startsWith(u8, input[i..], numberChar)) {
                     digit = j;
                 }
@@ -49,14 +50,14 @@ fn solvePart2(input: []const u8) !usize {
         }
 
         if (digit) |realDigit| {
-            if (firstDigit == null) {
+            if (firstDigit == 0) {
                 firstDigit = realDigit;
             }
             lastDigit = realDigit;
         }
     }
 
-    return 10 * firstDigit.? + lastDigit.?;
+    return 10 * firstDigit + lastDigit;
 }
 
 test "test-input" {
