@@ -13,3 +13,9 @@ To run against your puzzle input, add the input to a file called `input.txt` in 
 ```bash
 zig build run_dayXX
 ```
+
+To simply build a specific day use:
+
+```bash
+zig build dayXX
+```

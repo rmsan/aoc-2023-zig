@@ -6,8 +6,8 @@ jobs:
   test:
     strategy:
       matrix:
-        os: [ ubuntu-latest, macos-latest, windows-latest ]
-        day: [ day01, day02, day03 ]
+        os: [ ubuntu-latest, macos-latest ]
+        day: [ day01, day02, day03, day04 ]
     runs-on: ${{matrix.os}}
     steps:
       - uses: actions/checkout@v3

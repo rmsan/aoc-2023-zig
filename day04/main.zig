@@ -1,0 +1,103 @@
+const std = @import("std");
+
+pub fn main() !void {
+    var gpa = std.heap.ArenaAllocator.init(std.heap.page_allocator);
+    defer gpa.deinit();
+    var allocator = gpa.allocator();
+    const fileContent = @embedFile("input.txt");
+
+    var lines = std.mem.tokenizeAny(u8, fileContent, "\n");
+    var part1: usize = 0;
+    while (lines.next()) |line| {
+        part1 += try solvePart1(line);
+    }
+    var part2 = try solvePart2(fileContent, &allocator);
+
+    std.debug.print("Part1: {d}\nPart2: {d}\n", .{ part1, part2 });
+}
+
+fn getIntersections(input: []const u8) !usize {
+    const bitSet = std.bit_set.IntegerBitSet(100);
+    var gameCards = std.mem.tokenizeAny(u8, input, "|");
+    const deck = gameCards.next().?;
+    const hand = gameCards.next().?;
+    var deckSplit = std.mem.tokenizeScalar(u8, deck, ' ');
+    var handSplit = std.mem.tokenizeScalar(u8, hand, ' ');
+    var deckBag = bitSet.initEmpty();
+    var handBag = bitSet.initEmpty();
+    while (deckSplit.next()) |deckCard| {
+        const deckCardValue = try std.fmt.parseInt(usize, deckCard, 10);
+        deckBag.set(deckCardValue);
+    }
+    while (handSplit.next()) |handCard| {
+        const handCardValue = try std.fmt.parseInt(usize, handCard, 10);
+        handBag.set(handCardValue);
+    }
+    const intersection = deckBag.intersectWith(handBag);
+    return intersection.count();
+}
+
+fn solvePart1(input: []const u8) !usize {
+    var game = std.mem.tokenizeAny(u8, input, ":");
+    _ = game.next();
+    const gameSet = game.next().?;
+    const intersections = try getIntersections(gameSet);
+    if (intersections > 0) {
+        return std.math.pow(usize, 2, intersections - 1);
+    }
+
+    return 0;
+}
+
+fn solvePart2(input: []const u8, allocator: *std.mem.Allocator) !usize {
+    var bucket = std.AutoHashMap(usize, usize).init(allocator.*);
+    defer bucket.deinit();
+
+    var index: usize = 0;
+    var lines = std.mem.tokenizeAny(u8, input, "\n");
+    while (lines.next()) |line| : (index += 1) {
+        var entry = try bucket.getOrPut(index);
+        if (!entry.found_existing) {
+            entry.value_ptr.* = 1;
+        } else {
+            entry.value_ptr.* += 1;
+        }
+
+        var game = std.mem.tokenizeAny(u8, line, ":");
+        _ = game.next();
+        const gameSet = game.next().?;
+        const intersections = try getIntersections(gameSet);
+        for (intersections, 0..) |_, intersectionIndex| {
+            const newIndex = index + 1 + intersectionIndex;
+            // Always there, because we insert it at the beginning of the loop
+            const indexValue = bucket.get(index).?;
+            var newEntry = try bucket.getOrPut(newIndex);
+            if (!newEntry.found_existing) {
+                newEntry.value_ptr.* = indexValue;
+            } else {
+                newEntry.value_ptr.* += indexValue;
+            }
+        }
+    }
+    var result: usize = 0;
+    var bucketIterator = bucket.valueIterator();
+    while (bucketIterator.next()) |bucketValue| {
+        result += bucketValue.*;
+    }
+    return result;
+}
+
+test "test-input" {
+    var allocator = std.testing.allocator;
+    const fileContent = @embedFile("test.txt");
+
+    var lines = std.mem.tokenizeAny(u8, fileContent, "\n");
+    var part1: usize = 0;
+    while (lines.next()) |line| {
+        part1 += try solvePart1(line);
+    }
+    var part2 = try solvePart2(fileContent, &allocator);
+
+    try std.testing.expectEqual(part1, 13);
+    try std.testing.expectEqual(part2, 30);
+}

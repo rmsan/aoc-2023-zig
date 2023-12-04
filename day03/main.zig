@@ -159,13 +159,13 @@ fn solvePart2(input: []const u8, allocator: *std.mem.Allocator) !usize {
         const coord = Coord{ .x = row, .y = column };
         const prevCoords = try coords.getOrPut(coord);
         if (prevCoords.found_existing) {
-            var map = coords.get(coord).?;
+            var map = prevCoords.value_ptr.*;
             try map.put(pos, {});
-            try coords.put(coord, map);
+            prevCoords.value_ptr.* = map;
         } else {
             var map = std.AutoHashMap(Pos, void).init(allocator.*);
             try map.put(pos, {});
-            try coords.put(coord, map);
+            prevCoords.value_ptr.* = map;
         }
     }
 
