@@ -100,7 +100,7 @@ fn solvePart2(input: []const u8, allocator: *std.mem.Allocator) !usize {
                     if (overlapStart > seedStart) {
                         try seedsList.append([2]usize{ seedStart, overlapStart });
                     }
-                    if (seedEnd > overlapEnd) {
+                    if (overlapEnd < seedEnd) {
                         try seedsList.append([2]usize{ overlapEnd, seedEnd });
                     }
                     break;
