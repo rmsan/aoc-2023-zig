@@ -18,14 +18,14 @@ const Coord = struct { x: usize, y: usize };
 
 fn getGrid(input: []const u8, allocator: *std.mem.Allocator) ![][]const u8 {
     var grid: [][]const u8 = undefined;
-    var columnCount: usize = 0;
+    var rowCount: usize = 0;
     var lines = std.mem.tokenizeAny(u8, input, "\n");
     while (lines.next()) |_| {
-        columnCount += 1;
+        rowCount += 1;
     }
     lines.reset();
     var row: usize = 0;
-    grid = try allocator.alloc([]u8, columnCount);
+    grid = try allocator.alloc([]u8, rowCount);
     while (lines.next()) |line| : (row += 1) {
         grid[row] = try allocator.alloc(u8, line.len);
         grid[row] = line;
