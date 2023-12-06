@@ -60,24 +60,21 @@ fn getColors(input: []const u8) !Colors {
     while (games.next()) |game| {
         var gameSets = std.mem.splitScalar(u8, game, ',');
         while (gameSets.next()) |gameSet| {
-            const redPos = std.mem.indexOf(u8, gameSet, "red");
-            const bluePos = std.mem.indexOf(u8, gameSet, "blue");
-            const greenPos = std.mem.indexOf(u8, gameSet, "green");
+            var gameSetSegment = std.mem.tokenizeScalar(u8, gameSet, ' ');
+            const numberString = gameSetSegment.next().?;
+            const colorString = gameSetSegment.next().?;
+            const numberValue = try std.fmt.parseInt(usize, numberString, 10);
 
-            if (redPos) |redFound| {
-                const redString = std.mem.trim(u8, gameSet[0..redFound], " ");
-                const redValue = try std.fmt.parseInt(usize, redString, 10);
-                red = @max(red, redValue);
+            if (std.mem.eql(u8, colorString, "red")) {
+                red = @max(red, numberValue);
             }
-            if (bluePos) |blueFound| {
-                const blueString = std.mem.trim(u8, gameSet[0..blueFound], " ");
-                const blueValue = try std.fmt.parseInt(usize, blueString, 10);
-                blue = @max(blue, blueValue);
+
+            if (std.mem.eql(u8, colorString, "blue")) {
+                blue = @max(blue, numberValue);
             }
-            if (greenPos) |greenFound| {
-                const greenString = std.mem.trim(u8, gameSet[0..greenFound], " ");
-                const greenValue = try std.fmt.parseInt(usize, greenString, 10);
-                green = @max(green, greenValue);
+
+            if (std.mem.eql(u8, colorString, "green")) {
+                green = @max(green, numberValue);
             }
         }
     }
