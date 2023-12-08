@@ -12,31 +12,21 @@ pub fn main() !void {
     std.debug.print("Part1: {d}\nPart2: {d}\n", .{ part1, part2 });
 }
 
-const Pos = struct { x: usize, yLow: usize, yHigh: usize };
-
-const Coord = struct { x: usize, y: usize };
-
 fn getGrid(input: []const u8, allocator: *std.mem.Allocator) ![][]const u8 {
-    var grid: [][]const u8 = undefined;
-    var rowCount: usize = 0;
+    var grid = std.ArrayList([]const u8).init(allocator.*);
     var lines = std.mem.tokenizeAny(u8, input, "\n");
-    while (lines.next()) |_| {
-        rowCount += 1;
+    while (lines.next()) |line| {
+        try grid.append(line);
     }
-    lines.reset();
-    var row: usize = 0;
-    grid = try allocator.alloc([]u8, rowCount);
-    while (lines.next()) |line| : (row += 1) {
-        grid[row] = try allocator.alloc(u8, line.len);
-        grid[row] = line;
-    }
-    return grid;
+    return grid.toOwnedSlice();
 }
 
 fn solvePart1(input: []const u8, allocator: *std.mem.Allocator) !usize {
     var grid = try getGrid(input, allocator);
+    defer allocator.free(grid);
 
-    var digitNeighbours = std.ArrayList([2]usize).init(allocator.*);
+    var digitNeighbours = std.AutoHashMap([2]usize, void).init(allocator.*);
+    defer digitNeighbours.deinit();
     for (grid, 0..) |row, rowIndex| {
         for (row, 0..) |column, columnIndex| {
             if (column == '.' or std.ascii.isDigit(column)) {
@@ -51,32 +41,33 @@ fn solvePart1(input: []const u8, allocator: *std.mem.Allocator) !usize {
                 for (columnNeighbours) |columnNeighbour| {
                     const actualChar = grid[rowNeighbour][columnNeighbour];
                     if (std.ascii.isDigit(actualChar)) {
-                        try digitNeighbours.append(.{ rowNeighbour, columnNeighbour });
+                        var minus: usize = 0;
+                        while (true) {
+                            // returns a tuple with the result and a u1 (0 = no overflow)
+                            const left = @subWithOverflow(columnNeighbour, minus + 1);
+                            if (left[1] != 0) {
+                                break;
+                            }
+                            const checkLeft = grid[rowNeighbour][left[0]];
+                            if (std.ascii.isDigit(checkLeft)) {
+                                minus += 1;
+                            } else {
+                                break;
+                            }
+                        }
+                        try digitNeighbours.put(.{ rowNeighbour, columnNeighbour - minus }, {});
                     }
                 }
             }
         }
     }
 
-    var positionSet = std.AutoHashMap(Pos, void).init(allocator.*);
-    for (digitNeighbours.items) |digitNeighbour| {
-        const x = digitNeighbour[0];
-        const y = digitNeighbour[1];
-        var minus: usize = 0;
+    var result: usize = 0;
+    var it = digitNeighbours.iterator();
+    while (it.next()) |digitNeighbour| {
+        const x = digitNeighbour.key_ptr.*[0];
+        const y = digitNeighbour.key_ptr.*[1];
         var plus: usize = 1;
-        while (true) {
-            // returns a tuple with the result and a u1 (0 = no overflow)
-            const left = @subWithOverflow(y, minus + 1);
-            if (left[1] != 0) {
-                break;
-            }
-            const checkLeft = grid[x][left[0]];
-            if (std.ascii.isDigit(checkLeft)) {
-                minus += 1;
-            } else {
-                break;
-            }
-        }
         while (true) {
             const right = y + plus;
             const checkRight = grid[x][right];
@@ -86,15 +77,7 @@ fn solvePart1(input: []const u8, allocator: *std.mem.Allocator) !usize {
                 break;
             }
         }
-        const pos = Pos{ .x = x, .yLow = y - minus, .yHigh = y + plus };
-        try positionSet.put(pos, {});
-    }
-
-    var result: usize = 0;
-    var digitsIterator = positionSet.iterator();
-    while (digitsIterator.next()) |digitToParse| {
-        const digitPos = digitToParse.key_ptr.*;
-        const digitString = grid[digitPos.x][digitPos.yLow..digitPos.yHigh];
+        const digitString = grid[x][y .. y + plus];
         const digit = try std.fmt.parseInt(usize, digitString, 10);
         result += digit;
     }
@@ -104,94 +87,72 @@ fn solvePart1(input: []const u8, allocator: *std.mem.Allocator) !usize {
 
 fn solvePart2(input: []const u8, allocator: *std.mem.Allocator) !usize {
     var grid = try getGrid(input, allocator);
+    defer allocator.free(grid);
 
-    var digitNeighbours = std.ArrayList([4]usize).init(allocator.*);
+    var finalResult: usize = 0;
     for (grid, 0..) |row, rowIndex| {
         for (row, 0..) |column, columnIndex| {
             if (column != '*') {
                 continue;
             }
 
+            var digitNeighbours = std.AutoHashMap([2]usize, void).init(allocator.*);
+            defer digitNeighbours.deinit();
             const rowNeighbours: [3]usize = .{ rowIndex - 1, rowIndex, rowIndex + 1 };
             const columnNeighbours: [3]usize = .{ columnIndex - 1, columnIndex, columnIndex + 1 };
             for (rowNeighbours) |rowNeighbour| {
                 for (columnNeighbours) |columnNeighbour| {
                     const actualChar = grid[rowNeighbour][columnNeighbour];
                     if (std.ascii.isDigit(actualChar)) {
-                        try digitNeighbours.append(.{ rowNeighbour, columnNeighbour, rowIndex, columnIndex });
+                        var minus: usize = 0;
+                        while (true) {
+                            // returns a tuple with the result and a u1 (0 = no overflow)
+                            const left = @subWithOverflow(columnNeighbour, minus + 1);
+                            if (left[1] != 0) {
+                                break;
+                            }
+                            const checkLeft = grid[rowNeighbour][left[0]];
+                            if (std.ascii.isDigit(checkLeft)) {
+                                minus += 1;
+                            } else {
+                                break;
+                            }
+                        }
+                        try digitNeighbours.put(.{ rowNeighbour, columnNeighbour - minus }, {});
                     }
                 }
             }
+
+            if (digitNeighbours.count() == 2) {
+                var result: usize = 1;
+                var it = digitNeighbours.iterator();
+                while (it.next()) |digitNeighbour| {
+                    const x = digitNeighbour.key_ptr.*[0];
+                    const y = digitNeighbour.key_ptr.*[1];
+                    var plus: usize = 1;
+                    while (true) {
+                        const right = y + plus;
+                        const checkRight = grid[x][right];
+                        if (std.ascii.isDigit(checkRight)) {
+                            plus += 1;
+                        } else {
+                            break;
+                        }
+                    }
+                    const digitString = grid[x][y .. y + plus];
+                    const digit = try std.fmt.parseInt(usize, digitString, 10);
+                    result *= digit;
+                }
+                finalResult += result;
+            }
         }
     }
 
-    var coords = std.AutoHashMap(Coord, std.AutoHashMap(Pos, void)).init(allocator.*);
-    for (digitNeighbours.items) |digitNeighbour| {
-        const x = digitNeighbour[0];
-        const y = digitNeighbour[1];
-        const row = digitNeighbour[2];
-        const column = digitNeighbour[3];
-        var minus: usize = 0;
-        var plus: usize = 1;
-        while (true) {
-            const left = @subWithOverflow(y, minus + 1);
-            if (left[1] != 0) {
-                break;
-            }
-            const checkLeft = grid[x][left[0]];
-            if (std.ascii.isDigit(checkLeft)) {
-                minus += 1;
-            } else {
-                break;
-            }
-        }
-        while (true) {
-            const right = y + plus;
-            const checkRight = grid[x][right];
-            if (std.ascii.isDigit(checkRight)) {
-                plus += 1;
-            } else {
-                break;
-            }
-        }
-
-        const pos = Pos{ .x = x, .yLow = y - minus, .yHigh = y + plus };
-        const coord = Coord{ .x = row, .y = column };
-        const prevCoords = try coords.getOrPut(coord);
-        if (prevCoords.found_existing) {
-            var map = prevCoords.value_ptr.*;
-            try map.put(pos, {});
-            prevCoords.value_ptr.* = map;
-        } else {
-            var map = std.AutoHashMap(Pos, void).init(allocator.*);
-            try map.put(pos, {});
-            prevCoords.value_ptr.* = map;
-        }
-    }
-
-    var result: usize = 0;
-    var coordsIterator = coords.iterator();
-    while (coordsIterator.next()) |coord| {
-        const positions = coord.value_ptr.*;
-        if (positions.count() == 2) {
-            var it = positions.keyIterator();
-            var gearSum: usize = 1;
-            while (it.next()) |key| {
-                const posString = grid[key.x][key.yLow..key.yHigh];
-                const posValue = try std.fmt.parseInt(usize, posString, 10);
-                gearSum *= posValue;
-            }
-            result += gearSum;
-        }
-    }
-
-    return result;
+    return finalResult;
 }
 
 test "test-input" {
-    var gpa = std.heap.ArenaAllocator.init(std.heap.page_allocator);
-    defer gpa.deinit();
-    var allocator = gpa.allocator();
+    var allocator = std.testing.allocator;
     const fileContent = @embedFile("test.txt");
 
     var part1 = try solvePart1(fileContent, &allocator);
