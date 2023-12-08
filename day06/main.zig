@@ -121,16 +121,14 @@ fn solvePart2_binarySearch(input: []const u8, allocator: *std.mem.Allocator) !us
     var low: usize = 0;
     var high: usize = time / 2;
 
-    std.debug.assert(low * (time - low) < distance);
     while (low + 1 < high) {
-        const middle = (low + high) / 2;
+        const middle = low + (high - low) / 2;
         if (middle * (time - middle) >= distance) {
             high = middle;
         } else {
             low = middle;
         }
     }
-    std.debug.assert(low + 1 == high);
     const first = high;
     const last = (time / 2) + (time / 2 - first);
     result = last - first + 1;
