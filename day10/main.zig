@@ -21,15 +21,6 @@ fn getGrid(input: []const u8, allocator: *std.mem.Allocator) ![][]const u8 {
     return grid.toOwnedSlice();
 }
 
-// | is a vertical pipe connecting north and south.
-// - is a horizontal pipe connecting east and west.
-// L is a 90-degree bend connecting north and east.
-// J is a 90-degree bend connecting north and west.
-// 7 is a 90-degree bend connecting south and west.
-// F is a 90-degree bend connecting south and east.
-// . is ground; there is no pipe in this tile.
-// S is the starting position of the animal; there is a pipe on this
-
 const DOWN_MOV = [_]u8{ '|', 'L', 'J' };
 const DOWN_S_MOV = [_]u8{'S'} ++ DOWN_MOV;
 const UP_MOV = [_]u8{ '|', 'F', '7' };
@@ -39,12 +30,36 @@ const LEFT_S_MOV = [_]u8{'S'} ++ LEFT_MOV;
 const RIGHT_MOV = [_]u8{ '-', 'L', 'F' };
 const RIGHT_S_MOV = [_]u8{'S'} ++ RIGHT_MOV;
 
+inline fn mapCharToInt(char: u8) usize {
+    return switch (char) {
+        '|' => 0,
+        'L' => 1,
+        'J' => 2,
+        'F' => 3,
+        '7' => 4,
+        '-' => 5,
+        else => unreachable,
+    };
+}
+
+inline fn mapIntToChar(char: usize) u8 {
+    return switch (char) {
+        0 => '|',
+        1 => 'L',
+        2 => 'J',
+        3 => 'F',
+        4 => '7',
+        5 => '-',
+        else => unreachable,
+    };
+}
+
 fn solvePart1(input: []const u8, allocator: *std.mem.Allocator) !usize {
     var grid = try getGrid(input, allocator);
     defer allocator.free(grid);
-    var pipeSet = std.AutoHashMap([2]usize, void).init(allocator.*);
+    var loop = std.AutoHashMap([2]usize, void).init(allocator.*);
     var list = std.ArrayList([2]usize).init(allocator.*);
-    defer pipeSet.deinit();
+    defer loop.deinit();
     defer list.deinit();
     var sPosition = [2]usize{ 0, 0 };
     for (grid, 0..) |row, rowIndex| {
@@ -55,7 +70,7 @@ fn solvePart1(input: []const u8, allocator: *std.mem.Allocator) !usize {
         }
     }
 
-    try pipeSet.put(sPosition, {});
+    try loop.put(sPosition, {});
     try list.append(sPosition);
     while (list.popOrNull()) |entry| {
         const rowIndex = entry[0];
@@ -64,16 +79,11 @@ fn solvePart1(input: []const u8, allocator: *std.mem.Allocator) !usize {
         if (rowIndex > 0) {
             const nextUpChar = grid[rowIndex - 1][columnIndex];
             const nextUpPos = [2]usize{ rowIndex - 1, columnIndex };
-            var inPipe = false;
-            if (pipeSet.get(nextUpPos)) |_| {
-                inPipe = true;
-            }
-            if (!inPipe) {
+            if (!loop.contains(nextUpPos)) {
                 if (std.mem.indexOfScalar(u8, &DOWN_S_MOV, char)) |_| {
                     if (std.mem.indexOfScalar(u8, &UP_MOV, nextUpChar)) |_| {
-                        try pipeSet.put(nextUpPos, {});
+                        try loop.put(nextUpPos, {});
                         try list.append(nextUpPos);
-                        continue;
                     }
                 }
             }
@@ -81,16 +91,11 @@ fn solvePart1(input: []const u8, allocator: *std.mem.Allocator) !usize {
         if (rowIndex < grid.len - 1) {
             const nextDownChar = grid[rowIndex + 1][columnIndex];
             const nextDownPos = [2]usize{ rowIndex + 1, columnIndex };
-            var inPipe = false;
-            if (pipeSet.get(nextDownPos)) |_| {
-                inPipe = true;
-            }
-            if (!inPipe) {
+            if (!loop.contains(nextDownPos)) {
                 if (std.mem.indexOfScalar(u8, &UP_S_MOV, char)) |_| {
                     if (std.mem.indexOfScalar(u8, &DOWN_MOV, nextDownChar)) |_| {
-                        try pipeSet.put(nextDownPos, {});
+                        try loop.put(nextDownPos, {});
                         try list.append(nextDownPos);
-                        continue;
                     }
                 }
             }
@@ -98,16 +103,11 @@ fn solvePart1(input: []const u8, allocator: *std.mem.Allocator) !usize {
         if (columnIndex > 0) {
             const nextLeftChar = grid[rowIndex][columnIndex - 1];
             const nextLeftPos = [2]usize{ rowIndex, columnIndex - 1 };
-            var inPipe = false;
-            if (pipeSet.get(nextLeftPos)) |_| {
-                inPipe = true;
-            }
-            if (!inPipe) {
+            if (!loop.contains(nextLeftPos)) {
                 if (std.mem.indexOfScalar(u8, &LEFT_S_MOV, char)) |_| {
                     if (std.mem.indexOfScalar(u8, &RIGHT_MOV, nextLeftChar)) |_| {
-                        try pipeSet.put(nextLeftPos, {});
+                        try loop.put(nextLeftPos, {});
                         try list.append(nextLeftPos);
-                        continue;
                     }
                 }
             }
@@ -115,39 +115,196 @@ fn solvePart1(input: []const u8, allocator: *std.mem.Allocator) !usize {
         if (columnIndex < grid[0].len - 1) {
             const nextRigthChar = grid[rowIndex][columnIndex + 1];
             const nextRightPos = [2]usize{ rowIndex, columnIndex + 1 };
-            var inPipe = false;
-            if (pipeSet.get(nextRightPos)) |_| {
-                inPipe = true;
-            }
-            if (!inPipe) {
+            if (!loop.contains(nextRightPos)) {
                 if (std.mem.indexOfScalar(u8, &RIGHT_S_MOV, char)) |_| {
                     if (std.mem.indexOfScalar(u8, &LEFT_MOV, nextRigthChar)) |_| {
-                        try pipeSet.put(nextRightPos, {});
+                        try loop.put(nextRightPos, {});
                         try list.append(nextRightPos);
-                        continue;
                     }
                 }
             }
         }
     }
 
-    return pipeSet.count() / 2;
+    return loop.count() / 2;
 }
 
 fn solvePart2(input: []const u8, allocator: *std.mem.Allocator) !usize {
     var grid = try getGrid(input, allocator);
     defer allocator.free(grid);
-    return 0;
+    const bitSet = std.bit_set.IntegerBitSet(6);
+
+    var positionOfS = [2]usize{ 0, 0 };
+    for (grid, 0..) |row, rowIndex| {
+        for (row, 0..) |char, columnIndex| {
+            if (char == 'S') {
+                positionOfS = .{ rowIndex, columnIndex };
+            }
+        }
+    }
+
+    var maybeS = bitSet.initFull();
+
+    var loop = std.AutoHashMap([2]usize, void).init(allocator.*);
+    defer loop.deinit();
+    try loop.put(positionOfS, {});
+
+    var neighbourList = std.ArrayList([2]usize).init(allocator.*);
+    defer neighbourList.deinit();
+    try neighbourList.append(positionOfS);
+    while (neighbourList.popOrNull()) |neighbour| {
+        const rowIndex = neighbour[0];
+        const columnIndex = neighbour[1];
+        const char = grid[rowIndex][columnIndex];
+        if (rowIndex > 0) {
+            const nextUpChar = grid[rowIndex - 1][columnIndex];
+            const nextUpPos = [2]usize{ rowIndex - 1, columnIndex };
+            if (!loop.contains(nextUpPos)) {
+                if (std.mem.indexOfScalar(u8, &DOWN_S_MOV, char)) |_| {
+                    if (std.mem.indexOfScalar(u8, &UP_MOV, nextUpChar)) |_| {
+                        try loop.put(nextUpPos, {});
+                        try neighbourList.append(nextUpPos);
+                        if (char == 'S') {
+                            var bitSetS = bitSet.initEmpty();
+                            for (DOWN_MOV) |charToSet| {
+                                bitSetS.set(mapCharToInt(charToSet));
+                            }
+                            maybeS = bitSet.intersectWith(maybeS, bitSetS);
+                        }
+                    }
+                }
+            }
+        }
+        if (rowIndex < grid.len - 1) {
+            const nextDownChar = grid[rowIndex + 1][columnIndex];
+            const nextDownPos = [2]usize{ rowIndex + 1, columnIndex };
+            if (!loop.contains(nextDownPos)) {
+                if (std.mem.indexOfScalar(u8, &UP_S_MOV, char)) |_| {
+                    if (std.mem.indexOfScalar(u8, &DOWN_MOV, nextDownChar)) |_| {
+                        try loop.put(nextDownPos, {});
+                        try neighbourList.append(nextDownPos);
+                        if (char == 'S') {
+                            var bitSetS = bitSet.initEmpty();
+                            for (UP_MOV) |charToSet| {
+                                bitSetS.set(mapCharToInt(charToSet));
+                            }
+                            maybeS = bitSet.intersectWith(maybeS, bitSetS);
+                        }
+                    }
+                }
+            }
+        }
+        if (columnIndex > 0) {
+            const nextLeftChar = grid[rowIndex][columnIndex - 1];
+            const nextLeftPos = [2]usize{ rowIndex, columnIndex - 1 };
+            if (!loop.contains(nextLeftPos)) {
+                if (std.mem.indexOfScalar(u8, &LEFT_S_MOV, char)) |_| {
+                    if (std.mem.indexOfScalar(u8, &RIGHT_MOV, nextLeftChar)) |_| {
+                        try loop.put(nextLeftPos, {});
+                        try neighbourList.append(nextLeftPos);
+                        if (char == 'S') {
+                            var bitSetS = bitSet.initEmpty();
+                            for (LEFT_MOV) |charToSet| {
+                                bitSetS.set(mapCharToInt(charToSet));
+                            }
+                            maybeS = bitSet.intersectWith(maybeS, bitSetS);
+                        }
+                    }
+                }
+            }
+        }
+        if (columnIndex < grid[0].len - 1) {
+            const nextRigthChar = grid[rowIndex][columnIndex + 1];
+            const nextRightPos = [2]usize{ rowIndex, columnIndex + 1 };
+            if (!loop.contains(nextRightPos)) {
+                if (std.mem.indexOfScalar(u8, &RIGHT_S_MOV, char)) |_| {
+                    if (std.mem.indexOfScalar(u8, &LEFT_MOV, nextRigthChar)) |_| {
+                        try loop.put(nextRightPos, {});
+                        try neighbourList.append(nextRightPos);
+                        if (char == 'S') {
+                            var bitSetS = bitSet.initEmpty();
+                            for (RIGHT_MOV) |charToSet| {
+                                bitSetS.set(mapCharToInt(charToSet));
+                            }
+                            maybeS = bitSet.intersectWith(maybeS, bitSetS);
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    const intForChar = maybeS.findFirstSet().?;
+    var newGrid = try std.ArrayList([]const u8).initCapacity(allocator.*, grid.len);
+    for (grid, 0..) |row, rowIndex| {
+        var newRow = try std.ArrayList(u8).initCapacity(allocator.*, row.len);
+        for (row, 0..) |column, columnIndex| {
+            if (rowIndex == positionOfS[0] and columnIndex == positionOfS[1]) {
+                try newRow.append(mapIntToChar(intForChar));
+            } else if (loop.contains([2]usize{ rowIndex, columnIndex })) {
+                try newRow.append(column);
+            } else {
+                try newRow.append('.');
+            }
+        }
+        try newGrid.append(try newRow.toOwnedSlice());
+    }
+    grid = try newGrid.toOwnedSlice();
+
+    var outside = std.AutoHashMap([2]usize, void).init(allocator.*);
+    defer outside.deinit();
+    for (grid, 0..) |row, rowIndex| {
+        var within = false;
+        var up: ?bool = undefined;
+        for (row, 0..) |column, columnIndex| {
+            switch (column) {
+                '|' => {
+                    within = !within;
+                },
+                'L', 'F' => {
+                    up = column == 'L';
+                },
+                '7', 'J' => {
+                    if (up.? and column != 'J') {
+                        within = !within;
+                    }
+                    if (!up.? and column != '7') {
+                        within = !within;
+                    }
+                },
+                else => {},
+            }
+            if (!within) {
+                try outside.put([2]usize{ rowIndex, columnIndex }, {});
+            }
+        }
+    }
+
+    var combinedSet = std.AutoHashMap([2]usize, void).init(allocator.*);
+    defer combinedSet.deinit();
+    var loopIterator = loop.keyIterator();
+    while (loopIterator.next()) |entry| {
+        try combinedSet.put(entry.*, {});
+    }
+    var outsideIterator = outside.keyIterator();
+    while (outsideIterator.next()) |entry| {
+        try combinedSet.put(entry.*, {});
+    }
+
+    var result = grid.len * grid[0].len - combinedSet.count();
+
+    return result;
 }
 
 test "test-input" {
-    var allocator = std.testing.allocator;
-    const fileContentPart1 = @embedFile("test1.txt");
-    const fileContentPart2 = @embedFile("test1.txt");
+    var gpa = std.heap.ArenaAllocator.init(std.heap.page_allocator);
+    defer gpa.deinit();
+    var allocator = gpa.allocator();
+    const fileContent = @embedFile("test.txt");
 
-    var part1 = try solvePart1(fileContentPart1, &allocator);
-    var part2 = try solvePart2(fileContentPart2, &allocator);
+    var part1 = try solvePart1(fileContent, &allocator);
+    var part2 = try solvePart2(fileContent, &allocator);
 
-    try std.testing.expectEqual(part1, 8);
-    try std.testing.expectEqual(part2, 0);
+    try std.testing.expectEqual(part1, 23);
+    try std.testing.expectEqual(part2, 4);
 }
