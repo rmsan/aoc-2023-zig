@@ -7,7 +7,7 @@ pub fn main() !void {
     const fileContent = @embedFile("input.txt");
 
     var part1 = try solvePart1(fileContent, &allocator);
-    var part2 = try solvePart2(fileContent, &allocator);
+    var part2 = try solvePart2Alt(fileContent, &allocator);
 
     std.debug.print("Part1: {d}\nPart2: {d}\n", .{ part1, part2 });
 }
@@ -66,6 +66,7 @@ fn solvePart1(input: []const u8, allocator: *std.mem.Allocator) !usize {
         for (row, 0..) |column, columnIndex| {
             if (column == 'S') {
                 sPosition = .{ rowIndex, columnIndex };
+                break;
             }
         }
     }
@@ -139,6 +140,7 @@ fn solvePart2(input: []const u8, allocator: *std.mem.Allocator) !usize {
         for (row, 0..) |char, columnIndex| {
             if (char == 'S') {
                 positionOfS = .{ rowIndex, columnIndex };
+                break;
             }
         }
     }
@@ -296,6 +298,134 @@ fn solvePart2(input: []const u8, allocator: *std.mem.Allocator) !usize {
     return result;
 }
 
+fn solvePart2Alt(input: []const u8, allocator: *std.mem.Allocator) !usize {
+    var grid = try getGrid(input, allocator);
+    defer allocator.free(grid);
+    const bitSet = std.bit_set.IntegerBitSet(6);
+
+    var positionOfS = [2]usize{ 0, 0 };
+    for (grid, 0..) |row, rowIndex| {
+        for (row, 0..) |char, columnIndex| {
+            if (char == 'S') {
+                positionOfS = .{ rowIndex, columnIndex };
+                break;
+            }
+        }
+    }
+
+    var maybeS = bitSet.initFull();
+
+    var loop = std.AutoHashMap([2]usize, u8).init(allocator.*);
+    defer loop.deinit();
+    try loop.put(positionOfS, 'S');
+
+    var neighbourList = std.ArrayList([2]usize).init(allocator.*);
+    defer neighbourList.deinit();
+    try neighbourList.append(positionOfS);
+    while (neighbourList.popOrNull()) |neighbour| {
+        const rowIndex = neighbour[0];
+        const columnIndex = neighbour[1];
+        const char = grid[rowIndex][columnIndex];
+        if (rowIndex > 0) {
+            const nextUpChar = grid[rowIndex - 1][columnIndex];
+            const nextUpPos = [2]usize{ rowIndex - 1, columnIndex };
+            if (!loop.contains(nextUpPos)) {
+                if (std.mem.indexOfScalar(u8, &DOWN_S_MOV, char)) |_| {
+                    if (std.mem.indexOfScalar(u8, &UP_MOV, nextUpChar)) |_| {
+                        try loop.put(nextUpPos, nextUpChar);
+                        try neighbourList.append(nextUpPos);
+                        if (char == 'S') {
+                            var bitSetS = bitSet.initEmpty();
+                            for (DOWN_MOV) |charToSet| {
+                                bitSetS.set(mapCharToInt(charToSet));
+                            }
+                            maybeS = bitSet.intersectWith(maybeS, bitSetS);
+                        }
+                    }
+                }
+            }
+        }
+        if (rowIndex < grid.len - 1) {
+            const nextDownChar = grid[rowIndex + 1][columnIndex];
+            const nextDownPos = [2]usize{ rowIndex + 1, columnIndex };
+            if (!loop.contains(nextDownPos)) {
+                if (std.mem.indexOfScalar(u8, &UP_S_MOV, char)) |_| {
+                    if (std.mem.indexOfScalar(u8, &DOWN_MOV, nextDownChar)) |_| {
+                        try loop.put(nextDownPos, nextDownChar);
+                        try neighbourList.append(nextDownPos);
+                        if (char == 'S') {
+                            var bitSetS = bitSet.initEmpty();
+                            for (UP_MOV) |charToSet| {
+                                bitSetS.set(mapCharToInt(charToSet));
+                            }
+                            maybeS = bitSet.intersectWith(maybeS, bitSetS);
+                        }
+                    }
+                }
+            }
+        }
+        if (columnIndex > 0) {
+            const nextLeftChar = grid[rowIndex][columnIndex - 1];
+            const nextLeftPos = [2]usize{ rowIndex, columnIndex - 1 };
+            if (!loop.contains(nextLeftPos)) {
+                if (std.mem.indexOfScalar(u8, &LEFT_S_MOV, char)) |_| {
+                    if (std.mem.indexOfScalar(u8, &RIGHT_MOV, nextLeftChar)) |_| {
+                        try loop.put(nextLeftPos, nextLeftChar);
+                        try neighbourList.append(nextLeftPos);
+                        if (char == 'S') {
+                            var bitSetS = bitSet.initEmpty();
+                            for (LEFT_MOV) |charToSet| {
+                                bitSetS.set(mapCharToInt(charToSet));
+                            }
+                            maybeS = bitSet.intersectWith(maybeS, bitSetS);
+                        }
+                    }
+                }
+            }
+        }
+        if (columnIndex < grid[0].len - 1) {
+            const nextRigthChar = grid[rowIndex][columnIndex + 1];
+            const nextRightPos = [2]usize{ rowIndex, columnIndex + 1 };
+            if (!loop.contains(nextRightPos)) {
+                if (std.mem.indexOfScalar(u8, &RIGHT_S_MOV, char)) |_| {
+                    if (std.mem.indexOfScalar(u8, &LEFT_MOV, nextRigthChar)) |_| {
+                        try loop.put(nextRightPos, nextRigthChar);
+                        try neighbourList.append(nextRightPos);
+                        if (char == 'S') {
+                            var bitSetS = bitSet.initEmpty();
+                            for (RIGHT_MOV) |charToSet| {
+                                bitSetS.set(mapCharToInt(charToSet));
+                            }
+                            maybeS = bitSet.intersectWith(maybeS, bitSetS);
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    const intForChar = maybeS.findFirstSet().?;
+    const newSValue = mapIntToChar(intForChar);
+    try loop.put(positionOfS, newSValue);
+
+    var insideTiles: usize = 0;
+    for (grid, 0..) |row, ri| {
+        var inside = false;
+        for (row, 0..) |_, ci| {
+            if (loop.get([2]usize{ ri, ci })) |entry| {
+                switch (entry) {
+                    '|', '7', 'F' => inside = !inside,
+                    else => {},
+                }
+            } else if (inside) {
+                insideTiles += 1;
+            }
+        }
+    }
+
+    return insideTiles;
+}
+
 test "test-input" {
     var gpa = std.heap.ArenaAllocator.init(std.heap.page_allocator);
     defer gpa.deinit();
@@ -303,7 +433,7 @@ test "test-input" {
     const fileContent = @embedFile("test.txt");
 
     var part1 = try solvePart1(fileContent, &allocator);
-    var part2 = try solvePart2(fileContent, &allocator);
+    var part2 = try solvePart2Alt(fileContent, &allocator);
 
     try std.testing.expectEqual(part1, 23);
     try std.testing.expectEqual(part2, 4);
