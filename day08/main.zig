@@ -35,16 +35,12 @@ fn solvePart1(input: []const u8, allocator: *std.mem.Allocator) !usize {
     while (!std.mem.eql(u8, currentPosition, "ZZZ")) {
         const value = positions.get(currentPosition).?;
         var nextKey: []const u8 = undefined;
-        if (directions[directionPos] == 'L') {
+        if (directions[directionPos % directionsCount] == 'L') {
             nextKey = value[0];
         } else {
             nextKey = value[1];
         }
-        if (directionPos + 1 == directionsCount) {
-            directionPos = 0;
-        } else {
-            directionPos += 1;
-        }
+        directionPos += 1;
         currentPosition = nextKey;
         result += 1;
     }
@@ -88,16 +84,12 @@ fn solvePart2(input: []const u8, allocator: *std.mem.Allocator) !usize {
         while (!std.mem.endsWith(u8, currentPosition, "Z")) {
             const value = positions.get(currentPosition).?;
             var nextKey: []const u8 = undefined;
-            if (currentDirections[directionPos] == 'L') {
+            if (currentDirections[directionPos % directionsCount] == 'L') {
                 nextKey = value[0];
             } else {
                 nextKey = value[1];
             }
-            if (directionPos + 1 == directionsCount) {
-                directionPos = 0;
-            } else {
-                directionPos += 1;
-            }
+            directionPos += 1;
             currentPosition = nextKey;
             result += 1;
         }
