@@ -6,10 +6,11 @@ pub fn main() !void {
     var allocator = gpa.allocator();
     const fileContent = @embedFile("input.txt");
 
+    var timer = try std.time.Timer.start();
     var part1 = try solvePart1(fileContent, &allocator);
     var part2 = try solvePart2Alt(fileContent, &allocator);
 
-    std.debug.print("Part1: {d}\nPart2: {d}\n", .{ part1, part2 });
+    std.debug.print("Part1: {d}\nPart2: {d}\nTime: {d:}ms\n", .{ part1, part2, timer.lap() / std.time.ns_per_ms });
 }
 
 fn getGrid(input: []const u8, allocator: *std.mem.Allocator) ![][]const u8 {

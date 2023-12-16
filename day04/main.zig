@@ -6,6 +6,7 @@ pub fn main() !void {
     var allocator = gpa.allocator();
     const fileContent = @embedFile("input.txt");
 
+    var timer = try std.time.Timer.start();
     var lines = std.mem.tokenizeAny(u8, fileContent, "\n");
     var part1: usize = 0;
     while (lines.next()) |line| {
@@ -13,7 +14,7 @@ pub fn main() !void {
     }
     var part2 = try solvePart2(fileContent, &allocator);
 
-    std.debug.print("Part1: {d}\nPart2: {d}\n", .{ part1, part2 });
+    std.debug.print("Part1: {d}\nPart2: {d}\nTime: {d}us\n", .{ part1, part2, timer.lap() / std.time.ns_per_us });
 }
 
 fn getIntersections(input: []const u8) !usize {
