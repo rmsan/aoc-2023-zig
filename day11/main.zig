@@ -7,8 +7,8 @@ pub fn main() !void {
     const fileContent = @embedFile("input.txt");
 
     var timer = try std.time.Timer.start();
-    var part1 = try solvePart1Alt(fileContent, &allocator);
-    var part2 = try solvePart2Alt(fileContent, &allocator);
+    const part1 = try solvePart1Alt(fileContent, &allocator);
+    const part2 = try solvePart2Alt(fileContent, &allocator);
 
     std.debug.print("Part1: {d}\nPart2: {d}\nTime: {d}us\n", .{ part1, part2, timer.lap() / std.time.ns_per_us });
 }
@@ -137,10 +137,10 @@ test "test-input" {
     var allocator = std.testing.allocator;
     const fileContent = @embedFile("test.txt");
 
-    var part1 = try solvePart1(fileContent, &allocator);
-    var part2 = try solvePart2(fileContent, &allocator);
-    var part1Alt = try solvePart1(fileContent, &allocator);
-    var part2Alt = try solvePart2(fileContent, &allocator);
+    const part1 = try solvePart1(fileContent, &allocator);
+    const part2 = try solvePart2(fileContent, &allocator);
+    const part1Alt = try solvePart1Alt(fileContent, &allocator);
+    const part2Alt = try solvePart2Alt(fileContent, &allocator);
 
     try std.testing.expectEqual(part1, 374);
     try std.testing.expectEqual(part1, part1Alt);

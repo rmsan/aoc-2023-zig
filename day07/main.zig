@@ -7,8 +7,8 @@ pub fn main() !void {
     const fileContent = @embedFile("input.txt");
 
     var timer = try std.time.Timer.start();
-    var part1 = try solvePart1(fileContent, &allocator);
-    var part2 = try solvePart2(fileContent, &allocator);
+    const part1 = try solvePart1(fileContent, &allocator);
+    const part2 = try solvePart2(fileContent, &allocator);
 
     std.debug.print("Part1: {d}\nPart2: {d}\nTime: {d}us\n", .{ part1, part2, timer.lap() / std.time.ns_per_us });
 }
@@ -107,7 +107,7 @@ inline fn getHandWithBid(handString: []const u8, bid: usize, hand: [14]u8) HandW
     };
 }
 
-fn solve(input: []const u8, allocator: *std.mem.Allocator, comptime part2: bool, comptime compareFn: fn (context: void, a: HandWithBid, b: HandWithBid) std.math.Order) !usize {
+inline fn solve(input: []const u8, allocator: *std.mem.Allocator, comptime part2: bool, comptime compareFn: fn (context: void, a: HandWithBid, b: HandWithBid) std.math.Order) !usize {
     var lines = std.mem.tokenizeScalar(u8, input, '\n');
     var maxHeap = std.PriorityQueue(HandWithBid, void, compareFn).init(allocator.*, {});
     defer maxHeap.deinit();
@@ -135,9 +135,9 @@ fn solve(input: []const u8, allocator: *std.mem.Allocator, comptime part2: bool,
     }
 
     var result: usize = 0;
-    var index: usize = 0;
+    var index: usize = 1;
     while (maxHeap.removeOrNull()) |item| {
-        result += (index + 1) * item.bid;
+        result += (index) * item.bid;
         index += 1;
     }
 
@@ -156,8 +156,8 @@ test "test-input" {
     var allocator = std.testing.allocator;
     const fileContent = @embedFile("test.txt");
 
-    var part1 = try solvePart1(fileContent, &allocator);
-    var part2 = try solvePart2(fileContent, &allocator);
+    const part1 = try solvePart1(fileContent, &allocator);
+    const part2 = try solvePart2(fileContent, &allocator);
 
     try std.testing.expectEqual(part1, 6440);
     try std.testing.expectEqual(part2, 5905);

@@ -7,8 +7,8 @@ pub fn main() !void {
     const fileContent = @embedFile("input.txt");
 
     var timer = try std.time.Timer.start();
-    var part1 = try solvePart1(fileContent, &allocator);
-    var part2 = try solvePart2_binarySearch(fileContent, &allocator);
+    const part1 = try solvePart1(fileContent, &allocator);
+    const part2 = try solvePart2_binarySearch(fileContent, &allocator);
 
     std.debug.print("Part1: {d}\nPart2: {d}\nTime: {d}us\n", .{ part1, part2, timer.lap() / std.time.ns_per_us });
 }
@@ -19,21 +19,21 @@ fn getTimeAndDistanceSlices(input: []const u8, allocator: *std.mem.Allocator) ![
     var timeSegment = segements.next().?;
     var timeSegmentInner = std.mem.tokenizeScalar(u8, timeSegment, ':');
     _ = timeSegmentInner.next();
-    var timeList = std.ArrayList(usize).init(allocator.*);
+    var timeList = try std.ArrayList(usize).initCapacity(allocator.*, 4);
     var timeStrings = std.mem.tokenizeScalar(u8, timeSegmentInner.next().?, ' ');
     while (timeStrings.next()) |timeString| {
         var time = try std.fmt.parseInt(usize, timeString, 10);
-        try timeList.append(time);
+        timeList.appendAssumeCapacity(time);
     }
 
     var distanceSegment = segements.next().?;
     var distanceSegmentInner = std.mem.tokenizeScalar(u8, distanceSegment, ':');
     _ = distanceSegmentInner.next();
-    var distanceList = std.ArrayList(usize).init(allocator.*);
+    var distanceList = try std.ArrayList(usize).initCapacity(allocator.*, 4);
     var distanceStrings = std.mem.tokenizeScalar(u8, distanceSegmentInner.next().?, ' ');
     while (distanceStrings.next()) |distanceString| {
         var distance = try std.fmt.parseInt(usize, distanceString, 10);
-        try distanceList.append(distance);
+        distanceList.appendAssumeCapacity(distance);
     }
 
     const times = try timeList.toOwnedSlice();
@@ -140,11 +140,11 @@ test "test-input" {
     var allocator = std.testing.allocator;
     const fileContent = @embedFile("test.txt");
 
-    var part1 = try solvePart1(fileContent, &allocator);
-    var part2Linear = try solvePart2_linearSearch(fileContent, &allocator);
-    var part2Binary = try solvePart2_binarySearch(fileContent, &allocator);
+    const part1 = try solvePart1(fileContent, &allocator);
+    const part2Linear = try solvePart2_linearSearch(fileContent, &allocator);
+    const part2Binary = try solvePart2_binarySearch(fileContent, &allocator);
 
     try std.testing.expectEqual(part1, 288);
-    try std.testing.expectEqual(part2Linear, 71503);
     try std.testing.expectEqual(part2Binary, 71503);
+    try std.testing.expectEqual(part2Binary, part2Linear);
 }

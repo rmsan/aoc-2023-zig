@@ -2,58 +2,58 @@ const std = @import("std");
 
 const Colors = struct { red: usize, blue: usize, green: usize };
 
-// 12 red cubes, 13 green cubes, and 14 blue cubes
 pub fn main() !void {
     const fileContent = @embedFile("input.txt");
-    var lines = std.mem.tokenizeAny(u8, fileContent, "\n");
 
     var timer = try std.time.Timer.start();
-    var part1: usize = 0;
-    var part2: usize = 0;
-    while (lines.next()) |line| {
-        part1 += try solvePart1(line);
-        part2 += try solvePart2(line);
-    }
+    const part1 = try solvePart1(fileContent);
+    const part2 = try solvePart2(fileContent);
 
     std.debug.print("Part1: {d}\nPart2: {d}\nTime: {d}us\n", .{ part1, part2, timer.lap() / std.time.ns_per_us });
 }
 
 fn solvePart1(input: []const u8) !usize {
-    var gameInput = std.mem.splitScalar(u8, input, ':');
-    var gameIdString = gameInput.next().?;
-    const gameId = try std.fmt.parseInt(usize, gameIdString[5..], 10);
-    var gameString = gameInput.next().?;
-
-    const colors = try getColors(gameString);
-    var red: usize = colors.red;
-    var blue: usize = colors.blue;
-    var green: usize = colors.green;
-
     var result: usize = 0;
-    if (red <= 12 and green <= 13 and blue <= 14) {
-        result += gameId;
+    var lines = std.mem.tokenizeScalar(u8, input, '\n');
+    while (lines.next()) |line| {
+        var gameInput = std.mem.splitScalar(u8, line, ':');
+        var gameIdString = gameInput.next().?;
+        const gameId = try std.fmt.parseInt(usize, gameIdString[5..], 10);
+        var gameString = gameInput.next().?;
+
+        const colors = try getColors(gameString);
+        var red = colors.red;
+        var blue = colors.blue;
+        var green = colors.green;
+
+        if (red <= 12 and green <= 13 and blue <= 14) {
+            result += gameId;
+        }
     }
 
     return result;
 }
 
 fn solvePart2(input: []const u8) !usize {
-    var gameInput = std.mem.splitScalar(u8, input, ':');
-    _ = gameInput.next().?;
-    var gameString = gameInput.next().?;
     var result: usize = 0;
+    var lines = std.mem.tokenizeScalar(u8, input, '\n');
+    while (lines.next()) |line| {
+        var gameInput = std.mem.splitScalar(u8, line, ':');
+        _ = gameInput.next().?;
+        var gameString = gameInput.next().?;
 
-    const colors = try getColors(gameString);
-    var red: usize = colors.red;
-    var blue: usize = colors.blue;
-    var green: usize = colors.green;
+        const colors = try getColors(gameString);
+        var red = colors.red;
+        var blue = colors.blue;
+        var green = colors.green;
 
-    result = red * blue * green;
+        result += red * blue * green;
+    }
 
     return result;
 }
 
-fn getColors(input: []const u8) !Colors {
+inline fn getColors(input: []const u8) !Colors {
     var red: usize = 0;
     var blue: usize = 0;
     var green: usize = 0;
@@ -84,13 +84,9 @@ fn getColors(input: []const u8) !Colors {
 
 test "test-input" {
     const fileContent = @embedFile("test.txt");
-    var lines1 = std.mem.tokenizeAny(u8, fileContent, "\n");
-    var part1: usize = 0;
-    var part2: usize = 0;
-    while (lines1.next()) |line| {
-        part1 += try solvePart1(line);
-        part2 += try solvePart2(line);
-    }
+
+    const part1 = try solvePart1(fileContent);
+    const part2 = try solvePart2(fileContent);
 
     try std.testing.expectEqual(part1, 8);
     try std.testing.expectEqual(part2, 2286);

@@ -7,8 +7,8 @@ pub fn main() !void {
     const fileContent = @embedFile("input.txt");
 
     var timer = try std.time.Timer.start();
-    var part1 = try solvePart1(fileContent, &allocator);
-    var part2 = try solvePart2(fileContent, &allocator);
+    const part1 = try solvePart1(fileContent, &allocator);
+    const part2 = try solvePart2(fileContent, &allocator);
 
     std.debug.print("Part1: {d}\nPart2: {d}\nTime: {d}us\n", .{ part1, part2, timer.lap() / std.time.ns_per_us });
 }
@@ -94,7 +94,7 @@ fn solvePart2(input: []const u8, allocator: *std.mem.Allocator) !usize {
             currentPosition = nextKey;
             result += 1;
         }
-        try positionResults.append(result);
+        positionResults.appendAssumeCapacity(result);
     }
 
     var lcm: usize = positionResults.pop();
@@ -110,8 +110,8 @@ test "test-input" {
     const fileContentPart1 = @embedFile("test1.txt");
     const fileContentPart2 = @embedFile("test2.txt");
 
-    var part1 = try solvePart1(fileContentPart1, &allocator);
-    var part2 = try solvePart2(fileContentPart2, &allocator);
+    const part1 = try solvePart1(fileContentPart1, &allocator);
+    const part2 = try solvePart2(fileContentPart2, &allocator);
 
     try std.testing.expectEqual(part1, 6);
     try std.testing.expectEqual(part2, 6);

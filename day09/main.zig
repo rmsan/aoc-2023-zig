@@ -7,8 +7,8 @@ pub fn main() !void {
     const fileContent = @embedFile("input.txt");
 
     var timer = try std.time.Timer.start();
-    var part1 = try solvePart1(fileContent, &allocator);
-    var part2 = try solvePart2(fileContent, &allocator);
+    const part1 = try solvePart1(fileContent, &allocator);
+    const part2 = try solvePart2(fileContent, &allocator);
 
     std.debug.print("Part1: {d}\nPart2: {d}\nTime: {d}us\n", .{ part1, part2, timer.lap() / std.time.ns_per_us });
 }
@@ -42,7 +42,7 @@ inline fn solve(input: []const u8, allocator: *std.mem.Allocator, comptime part:
                     if (diff == 0) {
                         zeroesCount += 1;
                     }
-                    try diffList.append(diff);
+                    diffList.appendAssumeCapacity(diff);
                 }
             }
 
@@ -85,8 +85,8 @@ test "test-input" {
     var allocator = gpa.allocator();
     const fileContent = @embedFile("test.txt");
 
-    var part1 = try solvePart1(fileContent, &allocator);
-    var part2 = try solvePart2(fileContent, &allocator);
+    const part1 = try solvePart1(fileContent, &allocator);
+    const part2 = try solvePart2(fileContent, &allocator);
 
     try std.testing.expectEqual(part1, 114);
     try std.testing.expectEqual(part2, 2);

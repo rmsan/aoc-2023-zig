@@ -7,19 +7,15 @@ pub fn main() !void {
     const fileContent = @embedFile("input.txt");
 
     var timer = try std.time.Timer.start();
-    var lines = std.mem.tokenizeAny(u8, fileContent, "\n");
-    var part1: usize = 0;
-    while (lines.next()) |line| {
-        part1 += try solvePart1(line);
-    }
-    var part2 = try solvePart2(fileContent, &allocator);
+    const part1 = try solvePart1(fileContent);
+    const part2 = try solvePart2(fileContent, &allocator);
 
     std.debug.print("Part1: {d}\nPart2: {d}\nTime: {d}us\n", .{ part1, part2, timer.lap() / std.time.ns_per_us });
 }
 
 fn getIntersections(input: []const u8) !usize {
-    const bitSet = std.bit_set.IntegerBitSet(100);
-    var gameCards = std.mem.tokenizeAny(u8, input, "|");
+    const bitSet = std.bit_set.StaticBitSet(100);
+    var gameCards = std.mem.tokenizeScalar(u8, input, '|');
     const deck = gameCards.next().?;
     const hand = gameCards.next().?;
     var deckSplit = std.mem.tokenizeScalar(u8, deck, ' ');
@@ -39,15 +35,19 @@ fn getIntersections(input: []const u8) !usize {
 }
 
 fn solvePart1(input: []const u8) !usize {
-    var game = std.mem.tokenizeAny(u8, input, ":");
-    _ = game.next();
-    const gameSet = game.next().?;
-    const intersections = try getIntersections(gameSet);
-    if (intersections > 0) {
-        return std.math.pow(usize, 2, intersections - 1);
+    var result: usize = 0;
+    var lines = std.mem.tokenizeScalar(u8, input, '\n');
+    while (lines.next()) |line| {
+        var game = std.mem.tokenizeScalar(u8, line, ':');
+        _ = game.next();
+        const gameSet = game.next().?;
+        const intersections = try getIntersections(gameSet);
+        if (intersections > 0) {
+            result += std.math.pow(usize, 2, intersections - 1);
+        }
     }
 
-    return 0;
+    return result;
 }
 
 fn solvePart2(input: []const u8, allocator: *std.mem.Allocator) !usize {
@@ -92,12 +92,8 @@ test "test-input" {
     var allocator = std.testing.allocator;
     const fileContent = @embedFile("test.txt");
 
-    var lines = std.mem.tokenizeAny(u8, fileContent, "\n");
-    var part1: usize = 0;
-    while (lines.next()) |line| {
-        part1 += try solvePart1(line);
-    }
-    var part2 = try solvePart2(fileContent, &allocator);
+    const part1 = try solvePart1(fileContent);
+    const part2 = try solvePart2(fileContent, &allocator);
 
     try std.testing.expectEqual(part1, 13);
     try std.testing.expectEqual(part2, 30);

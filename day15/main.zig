@@ -7,8 +7,8 @@ pub fn main() !void {
     const fileContent = @embedFile("input.txt");
 
     var timer = try std.time.Timer.start();
-    var part1 = try solvePart1(fileContent);
-    var part2 = try solvePart2(fileContent, &allocator);
+    const part1 = try solvePart1(fileContent);
+    const part2 = try solvePart2(fileContent, &allocator);
 
     std.debug.print("Part1: {d}\nPart2: {d}\nTime: {d}us\n", .{ part1, part2, timer.lap() / std.time.ns_per_us });
 }
@@ -39,7 +39,7 @@ fn solvePart2(input: []const u8, allocator: *std.mem.Allocator) !usize {
     var boxes = try std.ArrayList(std.ArrayList([]const u8)).initCapacity(allocator.*, 256);
     defer boxes.deinit();
     for (0..256) |_| {
-        try boxes.append(std.ArrayList([]const u8).init(allocator.*));
+        boxes.appendAssumeCapacity(std.ArrayList([]const u8).init(allocator.*));
     }
     var strings = std.mem.tokenizeScalar(u8, input, ',');
     while (strings.next()) |string| {
@@ -87,8 +87,8 @@ test "test-input" {
     var allocator = std.testing.allocator;
     const fileContent = @embedFile("test.txt");
 
-    var part1 = try solvePart1(fileContent);
-    var part2 = try solvePart2(fileContent, &allocator);
+    const part1 = try solvePart1(fileContent);
+    const part2 = try solvePart2(fileContent, &allocator);
 
     try std.testing.expectEqual(part1, 1320);
     try std.testing.expectEqual(part2, 145);

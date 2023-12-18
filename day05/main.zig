@@ -7,8 +7,8 @@ pub fn main() !void {
     const fileContent = @embedFile("input.txt");
 
     var timer = try std.time.Timer.start();
-    var part1 = try solvePart1(fileContent, &allocator);
-    var part2 = try solvePart2(fileContent, &allocator);
+    const part1 = try solvePart1(fileContent, &allocator);
+    const part2 = try solvePart2(fileContent, &allocator);
 
     std.debug.print("Part1: {d}\nPart2: {d}\nTime: {d}us\n", .{ part1, part2, timer.lap() / std.time.ns_per_us });
 }
@@ -71,9 +71,9 @@ fn solvePart2(input: []const u8, allocator: *std.mem.Allocator) !usize {
 
     var seedRanges = try seedRangeList.toOwnedSlice();
     var seedWindows = std.mem.window(usize, seedRanges, 2, 2);
-    var seedsList = std.ArrayList([2]usize).init(allocator.*);
+    var seedsList = try std.ArrayList([2]usize).initCapacity(allocator.*, seedRanges.len / 2);
     while (seedWindows.next()) |seedWindow| {
-        try seedsList.append([2]usize{ seedWindow[0], seedWindow[0] + seedWindow[1] });
+        seedsList.appendAssumeCapacity([2]usize{ seedWindow[0], seedWindow[0] + seedWindow[1] });
     }
     while (segments.next()) |segment| {
         var rangeList = std.ArrayList([3]usize).init(allocator.*);
@@ -125,8 +125,8 @@ test "test-input" {
     var allocator = gpa.allocator();
     const fileContent = @embedFile("test.txt");
 
-    var part1 = try solvePart1(fileContent, &allocator);
-    var part2 = try solvePart2(fileContent, &allocator);
+    const part1 = try solvePart1(fileContent, &allocator);
+    const part2 = try solvePart2(fileContent, &allocator);
 
     try std.testing.expectEqual(part1, 35);
     try std.testing.expectEqual(part2, 46);
