@@ -97,7 +97,7 @@ fn solvePart2(input: []const u8, allocator: *std.mem.Allocator) !usize {
                 continue;
             }
 
-            var digitNeighbours = std.AutoHashMap([2]usize, void).init(allocator.*);
+            var digitNeighbours = std.AutoArrayHashMap([2]usize, void).init(allocator.*);
             defer digitNeighbours.deinit();
             const rowNeighbours: [3]usize = .{ rowIndex - 1, rowIndex, rowIndex + 1 };
             const columnNeighbours: [3]usize = .{ columnIndex - 1, columnIndex, columnIndex + 1 };
