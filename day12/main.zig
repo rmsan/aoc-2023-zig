@@ -51,7 +51,7 @@ fn count(configuration: []const u8, numbers: []u8) !usize {
     const firstCharConfig = configuration[0];
     const firstNumber = numbers[0];
 
-    var key = CacheKey{
+    const key = CacheKey{
         .firstChar = firstCharConfig,
         .configurationSize = @intCast(configuration.len),
         .numberSize = @intCast(numbers.len),
@@ -153,7 +153,7 @@ fn countAlt(configuration: *[]const u8, numbers: *[]u8, start: u8, end: u8) usiz
 
     const charToCheck = configuration.*[start];
 
-    var result = switch (charToCheck) {
+    const result = switch (charToCheck) {
         '.' => countAlt(configuration, numbers, start + 1, end),
         '#' => countBroken(configuration, numbers, start, end),
         '?' => countAlt(configuration, numbers, start + 1, end) + countBroken(configuration, numbers, start, end),
@@ -222,7 +222,7 @@ fn initCacheArray(outer: usize, inner: usize, allocator: *std.mem.Allocator) !vo
         for (0..inner) |_| {
             temp.appendAssumeCapacity(null);
         }
-        var tempSlice = try temp.toOwnedSlice();
+        const tempSlice = try temp.toOwnedSlice();
         cacheList.appendAssumeCapacity(tempSlice);
     }
 

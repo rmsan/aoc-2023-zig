@@ -57,7 +57,7 @@ fn solvePart2(input: []const u8, allocator: *std.mem.Allocator) !usize {
     var index: usize = 0;
     var lines = std.mem.tokenizeAny(u8, input, "\n");
     while (lines.next()) |line| : (index += 1) {
-        var entry = try bucket.getOrPut(index);
+        const entry = try bucket.getOrPut(index);
         if (!entry.found_existing) {
             entry.value_ptr.* = 1;
         } else {
@@ -72,7 +72,7 @@ fn solvePart2(input: []const u8, allocator: *std.mem.Allocator) !usize {
             const newIndex = index + 1 + intersectionIndex;
             // Always there, because we insert it at the beginning of the loop
             const indexValue = bucket.get(index).?;
-            var newEntry = try bucket.getOrPut(newIndex);
+            const newEntry = try bucket.getOrPut(newIndex);
             if (!newEntry.found_existing) {
                 newEntry.value_ptr.* = indexValue;
             } else {

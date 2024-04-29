@@ -69,7 +69,7 @@ fn solvePart2(input: []const u8, allocator: *std.mem.Allocator) !usize {
         try seedRangeList.append(seed);
     }
 
-    var seedRanges = try seedRangeList.toOwnedSlice();
+    const seedRanges = try seedRangeList.toOwnedSlice();
     var seedWindows = std.mem.window(usize, seedRanges, 2, 2);
     var seedsList = try std.ArrayList([2]usize).initCapacity(allocator.*, seedRanges.len / 2);
     while (seedWindows.next()) |seedWindow| {

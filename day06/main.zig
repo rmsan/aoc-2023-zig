@@ -16,23 +16,23 @@ pub fn main() !void {
 fn getTimeAndDistanceSlices(input: []const u8, allocator: *std.mem.Allocator) ![2][]usize {
     var segements = std.mem.tokenizeScalar(u8, input, '\n');
 
-    var timeSegment = segements.next().?;
+    const timeSegment = segements.next().?;
     var timeSegmentInner = std.mem.tokenizeScalar(u8, timeSegment, ':');
     _ = timeSegmentInner.next();
     var timeList = try std.ArrayList(usize).initCapacity(allocator.*, 4);
     var timeStrings = std.mem.tokenizeScalar(u8, timeSegmentInner.next().?, ' ');
     while (timeStrings.next()) |timeString| {
-        var time = try std.fmt.parseInt(usize, timeString, 10);
+        const time = try std.fmt.parseInt(usize, timeString, 10);
         timeList.appendAssumeCapacity(time);
     }
 
-    var distanceSegment = segements.next().?;
+    const distanceSegment = segements.next().?;
     var distanceSegmentInner = std.mem.tokenizeScalar(u8, distanceSegment, ':');
     _ = distanceSegmentInner.next();
     var distanceList = try std.ArrayList(usize).initCapacity(allocator.*, 4);
     var distanceStrings = std.mem.tokenizeScalar(u8, distanceSegmentInner.next().?, ' ');
     while (distanceStrings.next()) |distanceString| {
-        var distance = try std.fmt.parseInt(usize, distanceString, 10);
+        const distance = try std.fmt.parseInt(usize, distanceString, 10);
         distanceList.appendAssumeCapacity(distance);
     }
 
@@ -68,7 +68,7 @@ fn solvePart1(input: []const u8, allocator: *std.mem.Allocator) !usize {
 fn getTimeAndDistance(input: []const u8, allocator: *std.mem.Allocator) ![2]usize {
     var segements = std.mem.tokenizeScalar(u8, input, '\n');
 
-    var timeSegment = segements.next().?;
+    const timeSegment = segements.next().?;
     var timeSegmentInner = std.mem.tokenizeScalar(u8, timeSegment, ':');
     _ = timeSegmentInner.next();
     const timeStringSegment = timeSegmentInner.next().?;
@@ -79,7 +79,7 @@ fn getTimeAndDistance(input: []const u8, allocator: *std.mem.Allocator) ![2]usiz
         try timeBuffer.writeSlice(timeString);
     }
 
-    var distanceSegment = segements.next().?;
+    const distanceSegment = segements.next().?;
     var distanceSegmentInner = std.mem.tokenizeScalar(u8, distanceSegment, ':');
     _ = distanceSegmentInner.next();
     const distanceStringSegment = distanceSegmentInner.next().?;

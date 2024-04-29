@@ -1,8 +1,8 @@
 const std = @import("std");
 
 pub fn setup_day(
-    b: *std.build.Builder,
-    target: std.zig.CrossTarget,
+    b: *std.Build,
+    target: std.Build.ResolvedTarget,
     mode: std.builtin.Mode,
     day: u32,
 ) void {
@@ -30,7 +30,7 @@ pub fn setup_day(
     test_step.dependOn(&run_test.step);
 }
 
-pub fn build(b: *std.build.Builder) void {
+pub fn build(b: *std.Build) void {
     const target = b.standardTargetOptions(.{});
     const optimize = b.standardOptimizeOption(.{});
 

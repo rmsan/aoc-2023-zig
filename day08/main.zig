@@ -77,7 +77,7 @@ fn solvePart2(input: []const u8, allocator: *std.mem.Allocator) !usize {
     var positionResults = try std.ArrayList(usize).initCapacity(allocator.*, positionList.items.len);
     defer positionResults.deinit();
     for (positionList.items) |position| {
-        var currentDirections = directions;
+        const currentDirections = directions;
         var currentPosition = position;
         var result: usize = 0;
         var directionPos: usize = 0;

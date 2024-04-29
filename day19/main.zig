@@ -29,13 +29,13 @@ const WorkflowMapAndRatings = struct {
 
 inline fn getWorkflowMapAndRatings(input: []const u8, allocator: *std.mem.Allocator) !WorkflowMapAndRatings {
     var segments = std.mem.tokenizeSequence(u8, input, "\n\n");
-    var workflows = segments.next().?;
-    var ratings = segments.next().?;
+    const workflows = segments.next().?;
+    const ratings = segments.next().?;
     var workflowMap = std.StringHashMap(std.ArrayList(Instruction)).init(allocator.*);
     var workflowSegments = std.mem.tokenizeScalar(u8, workflows, '\n');
     while (workflowSegments.next()) |workflowString| {
         var workflowBranchSegments = std.mem.tokenizeScalar(u8, workflowString, '{');
-        var workflowName = workflowBranchSegments.next().?;
+        const workflowName = workflowBranchSegments.next().?;
         var workflowBranches = workflowBranchSegments.next().?;
         workflowBranches = workflowBranches[0 .. workflowBranches.len - 1];
         var branches = std.mem.tokenizeScalar(u8, workflowBranches, ',');
@@ -88,10 +88,10 @@ fn solvePart1(input: []const u8, allocator: *std.mem.Allocator) !usize {
         workflowMap.deinit();
     }
 
-    var ratings = workflowMapAndRatings.ratings;
+    const ratings = workflowMapAndRatings.ratings;
     var ratingSegments = std.mem.tokenizeScalar(u8, ratings, '\n');
     while (ratingSegments.next()) |rating| {
-        var ratingString = rating[1 .. rating.len - 1];
+        const ratingString = rating[1 .. rating.len - 1];
         var xmasSegment = std.mem.tokenizeScalar(u8, ratingString, ',');
         const x = xmasSegment.next().?;
         const m = xmasSegment.next().?;
@@ -161,7 +161,7 @@ fn solvePart2(input: []const u8, allocator: *std.mem.Allocator) !usize {
     for (0..4) |_| {
         possibleList.appendAssumeCapacity([2]usize{ 1, 4000 });
     }
-    var possible = try possibleList.toOwnedSlice();
+    const possible = try possibleList.toOwnedSlice();
     defer allocator.free(possible);
     return try process(&workflowMap, "in", possible, allocator);
 }

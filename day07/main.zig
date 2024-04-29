@@ -130,7 +130,7 @@ inline fn solve(input: []const u8, allocator: *std.mem.Allocator, comptime part2
             }
         }
         std.mem.sort(u8, &hand, {}, cmpHand);
-        var handWithBid = getHandWithBid(handString, bid, hand);
+        const handWithBid = getHandWithBid(handString, bid, hand);
         try maxHeap.add(handWithBid);
     }
 

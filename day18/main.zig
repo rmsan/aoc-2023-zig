@@ -52,7 +52,7 @@ inline fn solve(input: []const u8, comptime hex: bool) !usize {
             xy = numberToXY(number);
         }
 
-        var next: [2]isize = [_]isize{ start[0] + xy[0] * times, start[1] + xy[1] * times };
+        const next: [2]isize = [_]isize{ start[0] + xy[0] * times, start[1] + xy[1] * times };
         area += (start[0] * next[1] - start[1] * next[0]) + times;
         start = next;
     }

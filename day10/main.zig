@@ -56,7 +56,7 @@ inline fn mapIntToChar(char: usize) u8 {
 }
 
 fn solvePart1(input: []const u8, allocator: *std.mem.Allocator) !usize {
-    var grid = try getGrid(input, allocator);
+    const grid = try getGrid(input, allocator);
     defer allocator.free(grid);
     var loop = std.AutoHashMap([2]usize, void).init(allocator.*);
     var list = std.ArrayList([2]usize).init(allocator.*);
@@ -294,13 +294,13 @@ fn solvePart2(input: []const u8, allocator: *std.mem.Allocator) !usize {
         try combinedSet.put(entry.*, {});
     }
 
-    var result = grid.len * grid[0].len - combinedSet.count();
+    const result = grid.len * grid[0].len - combinedSet.count();
 
     return result;
 }
 
 fn solvePart2Alt(input: []const u8, allocator: *std.mem.Allocator) !usize {
-    var grid = try getGrid(input, allocator);
+    const grid = try getGrid(input, allocator);
     defer allocator.free(grid);
     const bitSet = std.bit_set.IntegerBitSet(6);
 

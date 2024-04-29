@@ -19,12 +19,12 @@ fn solvePart1(input: []const u8) !usize {
         var gameInput = std.mem.splitScalar(u8, line, ':');
         var gameIdString = gameInput.next().?;
         const gameId = try std.fmt.parseInt(usize, gameIdString[5..], 10);
-        var gameString = gameInput.next().?;
+        const gameString = gameInput.next().?;
 
         const colors = try getColors(gameString);
-        var red = colors.red;
-        var blue = colors.blue;
-        var green = colors.green;
+        const red = colors.red;
+        const blue = colors.blue;
+        const green = colors.green;
 
         if (red <= 12 and green <= 13 and blue <= 14) {
             result += gameId;
@@ -40,12 +40,12 @@ fn solvePart2(input: []const u8) !usize {
     while (lines.next()) |line| {
         var gameInput = std.mem.splitScalar(u8, line, ':');
         _ = gameInput.next().?;
-        var gameString = gameInput.next().?;
+        const gameString = gameInput.next().?;
 
         const colors = try getColors(gameString);
-        var red = colors.red;
-        var blue = colors.blue;
-        var green = colors.green;
+        const red = colors.red;
+        const blue = colors.blue;
+        const green = colors.green;
 
         result += red * blue * green;
     }
