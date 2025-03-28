@@ -138,7 +138,7 @@ fn solvePart2(input: []const u8, allocator: *std.mem.Allocator) !usize {
     return try solve(input, allocator, true);
 }
 
-fn countAlt(configuration: *[]const u8, numbers: *[]u8, start: u8, end: u8) usize {
+fn countAlt(configuration: []const u8, numbers: *[]u8, start: u8, end: u8) usize {
     if (start == configuration.len) {
         if (end == numbers.len) {
             return 1;
@@ -151,7 +151,7 @@ fn countAlt(configuration: *[]const u8, numbers: *[]u8, start: u8, end: u8) usiz
         return entry;
     }
 
-    const charToCheck = configuration.*[start];
+    const charToCheck = configuration[start];
 
     const result = switch (charToCheck) {
         '.' => countAlt(configuration, numbers, start + 1, end),
@@ -165,7 +165,7 @@ fn countAlt(configuration: *[]const u8, numbers: *[]u8, start: u8, end: u8) usiz
     return result;
 }
 
-fn countBroken(configuration: *[]const u8, numbers: *[]u8, start: u8, end: u8) usize {
+fn countBroken(configuration: []const u8, numbers: *[]u8, start: u8, end: u8) usize {
     if (end == numbers.len) {
         return 0;
     }
@@ -186,7 +186,7 @@ fn countBroken(configuration: *[]const u8, numbers: *[]u8, start: u8, end: u8) u
     return countAlt(configuration, numbers, endIndex + 1, end + 1);
 }
 
-fn brokenPossible(configuration: *[]const u8, start: u8, end: u8) bool {
+fn brokenPossible(configuration: []const u8, start: u8, end: u8) bool {
     const configSize = configuration.len;
 
     if (end > configSize) {
@@ -194,7 +194,7 @@ fn brokenPossible(configuration: *[]const u8, start: u8, end: u8) bool {
     }
 
     if (end == configSize) {
-        for (configuration.*[start..end]) |item| {
+        for (configuration[start..end]) |item| {
             if (item == '.') {
                 return false;
             }
@@ -203,12 +203,12 @@ fn brokenPossible(configuration: *[]const u8, start: u8, end: u8) bool {
     }
 
     if (end < configSize) {
-        for (configuration.*[start..end]) |item| {
+        for (configuration[start..end]) |item| {
             if (item == '.') {
                 return false;
             }
         }
-        return if (configuration.*[end] != '#') true else false;
+        return if (configuration[end] != '#') true else false;
     }
 
     // SAFETY: All cases are covered above
@@ -237,7 +237,7 @@ fn solveAlt(input: []const u8, allocator: *std.mem.Allocator, comptime expand: b
         var numbers = try std.ArrayList(u8).initCapacity(allocator.*, 6);
         defer numbers.deinit();
         var segments = std.mem.tokenizeScalar(u8, line, ' ');
-        var configuration = segments.next().?;
+        const configuration = segments.next().?;
         const numberSegment = segments.next().?;
         var numbersString = std.mem.tokenizeScalar(u8, numberSegment, ',');
         while (numbersString.next()) |numberString| {
@@ -251,7 +251,7 @@ fn solveAlt(input: []const u8, allocator: *std.mem.Allocator, comptime expand: b
 
             try initCacheArray(configuration.len, numberSlice.len + 1, allocator);
 
-            result += countAlt(&configuration, &numberSlice, 0, 0);
+            result += countAlt(configuration, &numberSlice, 0, 0);
         } else {
             var expNumbers = try std.ArrayList(u8).initCapacity(allocator.*, 30);
             defer expNumbers.deinit();
@@ -271,7 +271,7 @@ fn solveAlt(input: []const u8, allocator: *std.mem.Allocator, comptime expand: b
 
             try initCacheArray(expConfigBuffer.data.len, numberSlice.len + 1, allocator);
 
-            result += countAlt(&expConfigBuffer.data, &numberSlice, 0, 0);
+            result += countAlt(expConfigBuffer.data, &numberSlice, 0, 0);
         }
     }
     allocator.free(cacheArray);

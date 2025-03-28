@@ -185,7 +185,7 @@ fn process(workflowMap: *std.StringHashMap(std.ArrayList(Instruction)), rule: []
     var total: usize = 0;
     var entry = workflowMap.get(rule).?;
     const fallbackEntry = entry.pop();
-    const fallback = fallbackEntry.jumpTo.?;
+    const fallback = fallbackEntry.?.jumpTo.?;
     for (entry.items) |instruction| {
         const target = instruction.jumpTo.?;
         if (instruction.condition) |condition| {

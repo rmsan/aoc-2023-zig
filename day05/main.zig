@@ -87,7 +87,7 @@ fn solvePart2(input: []const u8, allocator: *std.mem.Allocator) !usize {
             try rangeList.append([3]usize{ destinationStart, sourceStart, range });
         }
         var seedList = std.ArrayList([2]usize).init(allocator.*);
-        while (seedsList.popOrNull()) |seed| {
+        while (seedsList.pop()) |seed| {
             const seedStart = seed[0];
             const seedEnd = seed[1];
             for (rangeList.items) |range| {

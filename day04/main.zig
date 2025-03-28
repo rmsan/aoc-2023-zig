@@ -68,7 +68,7 @@ fn solvePart2(input: []const u8, allocator: *std.mem.Allocator) !usize {
         _ = game.next();
         const gameSet = game.next().?;
         const intersections = try getIntersections(gameSet);
-        for (intersections, 0..) |_, intersectionIndex| {
+        for (0..intersections) |intersectionIndex| {
             const newIndex = index + 1 + intersectionIndex;
             // Always there, because we insert it at the beginning of the loop
             const indexValue = bucket.get(index).?;

@@ -97,8 +97,8 @@ fn solvePart2(input: []const u8, allocator: *std.mem.Allocator) !usize {
         positionResults.appendAssumeCapacity(result);
     }
 
-    var lcm: usize = positionResults.pop();
-    while (positionResults.popOrNull()) |result| {
+    var lcm: usize = positionResults.pop().?;
+    while (positionResults.pop()) |result| {
         lcm *= result / std.math.gcd(lcm, result);
     }
 

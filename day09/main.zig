@@ -57,8 +57,8 @@ inline fn solve(input: []const u8, allocator: *std.mem.Allocator, comptime part:
 
         var lineMax: isize = 0;
         // skip the zeroes line
-        _ = dataSet.pop();
-        while (dataSet.popOrNull()) |currentNumbers| {
+        _ = dataSet.pop().?;
+        while (dataSet.pop()) |currentNumbers| {
             if (part == Part.One) {
                 lineMax += currentNumbers[currentNumbers.len - 1];
             } else {

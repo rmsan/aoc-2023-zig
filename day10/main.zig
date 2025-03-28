@@ -74,7 +74,7 @@ fn solvePart1(input: []const u8, allocator: *std.mem.Allocator) !usize {
 
     try loop.put(sPosition, {});
     try list.append(sPosition);
-    while (list.popOrNull()) |entry| {
+    while (list.pop()) |entry| {
         const rowIndex = entry[0];
         const columnIndex = entry[1];
         const char = grid[rowIndex][columnIndex];
@@ -155,7 +155,7 @@ fn solvePart2(input: []const u8, allocator: *std.mem.Allocator) !usize {
     var neighbourList = std.ArrayList([2]usize).init(allocator.*);
     defer neighbourList.deinit();
     try neighbourList.append(positionOfS);
-    while (neighbourList.popOrNull()) |neighbour| {
+    while (neighbourList.pop()) |neighbour| {
         const rowIndex = neighbour[0];
         const columnIndex = neighbour[1];
         const char = grid[rowIndex][columnIndex];
@@ -323,7 +323,7 @@ fn solvePart2Alt(input: []const u8, allocator: *std.mem.Allocator) !usize {
     var neighbourList = std.ArrayList([2]usize).init(allocator.*);
     defer neighbourList.deinit();
     try neighbourList.append(positionOfS);
-    while (neighbourList.popOrNull()) |neighbour| {
+    while (neighbourList.pop()) |neighbour| {
         const rowIndex = neighbour[0];
         const columnIndex = neighbour[1];
         const char = grid[rowIndex][columnIndex];
