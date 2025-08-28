@@ -19,11 +19,11 @@ inline fn solve(input: []const u8, allocator: *std.mem.Allocator, comptime part:
     var result: isize = 0;
     var lines = std.mem.tokenizeScalar(u8, input, '\n');
     while (lines.next()) |line| {
-        var dataSet = std.ArrayList([]isize).init(allocator.*);
+        var dataSet = std.array_list.Managed([]isize).init(allocator.*);
         defer dataSet.deinit();
         var numberIterator = std.mem.tokenizeScalar(u8, line, ' ');
         var numberCount: usize = 0;
-        var initialNumberList = std.ArrayList(isize).init(allocator.*);
+        var initialNumberList = std.array_list.Managed(isize).init(allocator.*);
         while (numberIterator.next()) |numberString| {
             const number = try std.fmt.parseInt(isize, numberString, 10);
             try initialNumberList.append(number);
@@ -33,7 +33,7 @@ inline fn solve(input: []const u8, allocator: *std.mem.Allocator, comptime part:
         defer allocator.free(numberListItems);
         try dataSet.append(numberListItems);
         while (numberCount > 0) {
-            var diffList = try std.ArrayList(isize).initCapacity(allocator.*, numberCount - 1);
+            var diffList = try std.array_list.Managed(isize).initCapacity(allocator.*, numberCount - 1);
             defer diffList.deinit();
             var zeroesCount: usize = 0;
             for (numberListItems, 1..) |item, index| {

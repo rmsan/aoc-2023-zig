@@ -36,10 +36,10 @@ fn solvePart2(input: []const u8, allocator: *std.mem.Allocator) !usize {
     var result: usize = 0;
     var lensMap = std.StringHashMap(usize).init(allocator.*);
     defer lensMap.deinit();
-    var boxes = try std.ArrayList(std.ArrayList([]const u8)).initCapacity(allocator.*, 256);
+    var boxes = try std.array_list.Managed(std.array_list.Managed([]const u8)).initCapacity(allocator.*, 256);
     defer boxes.deinit();
     for (0..256) |_| {
-        boxes.appendAssumeCapacity(std.ArrayList([]const u8).init(allocator.*));
+        boxes.appendAssumeCapacity(std.array_list.Managed([]const u8).init(allocator.*));
     }
     var strings = std.mem.tokenizeScalar(u8, input, ',');
     while (strings.next()) |string| {

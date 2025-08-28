@@ -64,7 +64,7 @@ fn solvePart2(input: []const u8, allocator: *std.mem.Allocator) !usize {
         try positions.put(key, [2][]const u8{ leftValue, rightValue });
     }
 
-    var positionList = std.ArrayList([]const u8).init(allocator.*);
+    var positionList = std.array_list.Managed([]const u8).init(allocator.*);
     defer positionList.deinit();
     var positionIterator = positions.iterator();
     while (positionIterator.next()) |entry| {
@@ -74,7 +74,7 @@ fn solvePart2(input: []const u8, allocator: *std.mem.Allocator) !usize {
         }
     }
 
-    var positionResults = try std.ArrayList(usize).initCapacity(allocator.*, positionList.items.len);
+    var positionResults = try std.array_list.Managed(usize).initCapacity(allocator.*, positionList.items.len);
     defer positionResults.deinit();
     for (positionList.items) |position| {
         const currentDirections = directions;

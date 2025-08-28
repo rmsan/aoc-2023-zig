@@ -23,7 +23,7 @@ const Instruction = struct {
 };
 
 const WorkflowMapAndRatings = struct {
-    workflowMap: std.StringHashMap(std.ArrayList(Instruction)),
+    workflowMap: std.StringHashMap(std.array_list.Managed(Instruction)),
     ratings: []const u8,
 };
 
@@ -31,7 +31,7 @@ inline fn getWorkflowMapAndRatings(input: []const u8, allocator: *std.mem.Alloca
     var segments = std.mem.tokenizeSequence(u8, input, "\n\n");
     const workflows = segments.next().?;
     const ratings = segments.next().?;
-    var workflowMap = std.StringHashMap(std.ArrayList(Instruction)).init(allocator.*);
+    var workflowMap = std.StringHashMap(std.array_list.Managed(Instruction)).init(allocator.*);
     var workflowSegments = std.mem.tokenizeScalar(u8, workflows, '\n');
     while (workflowSegments.next()) |workflowString| {
         var workflowBranchSegments = std.mem.tokenizeScalar(u8, workflowString, '{');
@@ -42,7 +42,7 @@ inline fn getWorkflowMapAndRatings(input: []const u8, allocator: *std.mem.Alloca
         while (branches.next()) |branch| {
             if (!workflowMap.contains(workflowName)) {
                 // Assumption: Input do not have more than 4 branches (rules) per workflow to process
-                const list = try std.ArrayList(Instruction).initCapacity(allocator.*, 4);
+                const list = try std.array_list.Managed(Instruction).initCapacity(allocator.*, 4);
                 try workflowMap.put(workflowName, list);
             }
 
@@ -67,7 +67,7 @@ inline fn getWorkflowMapAndRatings(input: []const u8, allocator: *std.mem.Alloca
                 try workflowMap.put(workflowName, list);
             } else {
                 var list = workflowMap.get(workflowName).?;
-                list.appendAssumeCapacity(Instruction{ .jumpTo = branch, .condition = undefined });
+                list.appendAssumeCapacity(Instruction{ .jumpTo = branch, .condition = null });
                 try workflowMap.put(workflowName, list);
             }
         }
@@ -157,7 +157,7 @@ fn solvePart2(input: []const u8, allocator: *std.mem.Allocator) !usize {
         workflowMap.deinit();
     }
 
-    var possibleList = try std.ArrayList([2]usize).initCapacity(allocator.*, 4);
+    var possibleList = try std.array_list.Managed([2]usize).initCapacity(allocator.*, 4);
     for (0..4) |_| {
         possibleList.appendAssumeCapacity([2]usize{ 1, 4000 });
     }
@@ -166,7 +166,7 @@ fn solvePart2(input: []const u8, allocator: *std.mem.Allocator) !usize {
     return try process(&workflowMap, "in", possible, allocator);
 }
 
-fn process(workflowMap: *std.StringHashMap(std.ArrayList(Instruction)), rule: []const u8, possible: [][2]usize, allocator: *std.mem.Allocator) !usize {
+fn process(workflowMap: *std.StringHashMap(std.array_list.Managed(Instruction)), rule: []const u8, possible: [][2]usize, allocator: *std.mem.Allocator) !usize {
     const firstChar = rule[0];
     if (firstChar == 'A') {
         var product: usize = 1;
@@ -210,7 +210,7 @@ fn process(workflowMap: *std.StringHashMap(std.ArrayList(Instruction)), rule: []
             }
 
             if (trueHalf[0] <= trueHalf[1]) {
-                var copy = try std.ArrayList([2]usize).initCapacity(allocator.*, possible.len);
+                var copy = try std.array_list.Managed([2]usize).initCapacity(allocator.*, possible.len);
                 for (possible) |item| {
                     copy.appendAssumeCapacity(item);
                 }

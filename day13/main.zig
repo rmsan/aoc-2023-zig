@@ -15,7 +15,7 @@ pub fn main() !void {
 
 const Part = enum { One, Two };
 
-inline fn process(comptime part: Part, rowsOrColumns: *std.ArrayList(u32), factor: usize, result: *usize) void {
+inline fn process(comptime part: Part, rowsOrColumns: *std.array_list.Managed(u32), factor: usize, result: *usize) void {
     for (0..rowsOrColumns.items.len - 1) |index| {
         var diffs: u32 = 0;
         var c0: isize = @intCast(index);
@@ -47,8 +47,8 @@ inline fn solve(comptime part: Part, input: []const u8, allocator: *std.mem.Allo
     var result: usize = 0;
     var blocks = std.mem.tokenizeSequence(u8, input, "\n\n");
     while (blocks.next()) |block| {
-        var rows = std.ArrayList(u32).init(allocator.*);
-        var columns = std.ArrayList(u32).init(allocator.*);
+        var rows = std.array_list.Managed(u32).init(allocator.*);
+        var columns = std.array_list.Managed(u32).init(allocator.*);
         defer rows.deinit();
         defer columns.deinit();
         var lines = std.mem.tokenizeScalar(u8, block, '\n');

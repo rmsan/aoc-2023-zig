@@ -15,7 +15,7 @@ pub fn main() !void {
 
 fn solvePart1(input: []const u8, allocator: *std.mem.Allocator) !usize {
     var segments = std.mem.tokenizeSequence(u8, input, "\n\n");
-    var seedsList = std.ArrayList(usize).init(allocator.*);
+    var seedsList = std.array_list.Managed(usize).init(allocator.*);
     const seedSegment = segments.next().?;
     var seedSplit = std.mem.splitScalar(u8, seedSegment, ':');
     _ = seedSplit.next().?;
@@ -27,7 +27,7 @@ fn solvePart1(input: []const u8, allocator: *std.mem.Allocator) !usize {
 
     var seeds = try seedsList.toOwnedSlice();
     while (segments.next()) |segment| {
-        var rangeList = std.ArrayList([3]usize).init(allocator.*);
+        var rangeList = std.array_list.Managed([3]usize).init(allocator.*);
         var segmentIterator = std.mem.tokenizeAny(u8, segment, "\n");
         _ = segmentIterator.next().?;
         while (segmentIterator.next()) |segmentString| {
@@ -37,7 +37,7 @@ fn solvePart1(input: []const u8, allocator: *std.mem.Allocator) !usize {
             const range = try std.fmt.parseInt(usize, positionIterator.next().?, 10);
             try rangeList.append([3]usize{ destinationStart, sourceStart, range });
         }
-        var seedList = std.ArrayList(usize).init(allocator.*);
+        var seedList = std.array_list.Managed(usize).init(allocator.*);
         for (seeds) |seed| {
             for (rangeList.items) |range| {
                 const dest = range[0];
@@ -59,7 +59,7 @@ fn solvePart1(input: []const u8, allocator: *std.mem.Allocator) !usize {
 
 fn solvePart2(input: []const u8, allocator: *std.mem.Allocator) !usize {
     var segments = std.mem.tokenizeSequence(u8, input, "\n\n");
-    var seedRangeList = std.ArrayList(usize).init(allocator.*);
+    var seedRangeList = std.array_list.Managed(usize).init(allocator.*);
     const seedSegment = segments.next().?;
     var seedSplit = std.mem.splitScalar(u8, seedSegment, ':');
     _ = seedSplit.next().?;
@@ -71,12 +71,12 @@ fn solvePart2(input: []const u8, allocator: *std.mem.Allocator) !usize {
 
     const seedRanges = try seedRangeList.toOwnedSlice();
     var seedWindows = std.mem.window(usize, seedRanges, 2, 2);
-    var seedsList = try std.ArrayList([2]usize).initCapacity(allocator.*, seedRanges.len / 2);
+    var seedsList = try std.array_list.Managed([2]usize).initCapacity(allocator.*, seedRanges.len / 2);
     while (seedWindows.next()) |seedWindow| {
         seedsList.appendAssumeCapacity([2]usize{ seedWindow[0], seedWindow[0] + seedWindow[1] });
     }
     while (segments.next()) |segment| {
-        var rangeList = std.ArrayList([3]usize).init(allocator.*);
+        var rangeList = std.array_list.Managed([3]usize).init(allocator.*);
         var segmentIterator = std.mem.tokenizeAny(u8, segment, "\n");
         _ = segmentIterator.next().?;
         while (segmentIterator.next()) |segmentString| {
@@ -86,7 +86,7 @@ fn solvePart2(input: []const u8, allocator: *std.mem.Allocator) !usize {
             const range = try std.fmt.parseInt(usize, positionIterator.next().?, 10);
             try rangeList.append([3]usize{ destinationStart, sourceStart, range });
         }
-        var seedList = std.ArrayList([2]usize).init(allocator.*);
+        var seedList = std.array_list.Managed([2]usize).init(allocator.*);
         while (seedsList.pop()) |seed| {
             const seedStart = seed[0];
             const seedEnd = seed[1];

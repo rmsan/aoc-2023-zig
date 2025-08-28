@@ -1,4 +1,5 @@
 const std = @import("std");
+const Writer = std.io.Writer;
 
 pub fn main() !void {
     var gpa = std.heap.ArenaAllocator.init(std.heap.page_allocator);
@@ -87,7 +88,7 @@ inline fn solve(input: []const u8, allocator: *std.mem.Allocator, comptime expan
 
     var lines = std.mem.tokenizeScalar(u8, input, '\n');
     while (lines.next()) |line| {
-        var numbers = try std.ArrayList(u8).initCapacity(allocator.*, 6);
+        var numbers = try std.array_list.Managed(u8).initCapacity(allocator.*, 6);
         defer numbers.deinit();
         var segments = std.mem.tokenizeScalar(u8, line, ' ');
         const configuration = segments.next().?;
@@ -107,24 +108,24 @@ inline fn solve(input: []const u8, allocator: *std.mem.Allocator, comptime expan
 
             result += try count(configuration, numberSlice);
         } else {
-            var expNumbers = try std.ArrayList(u8).initCapacity(allocator.*, 30);
+            var expNumbers = try std.array_list.Managed(u8).initCapacity(allocator.*, 30);
             defer expNumbers.deinit();
 
-            var expConfigBuffer = try std.RingBuffer.init(allocator.*, configuration.len * 5 + 4);
-            defer expConfigBuffer.deinit(allocator.*);
-
+            var expConfigBuffer: [1024]u8 = undefined;
+            var expConfigWriter = Writer.fixed(&expConfigBuffer);
             for (0..5) |index| {
                 expNumbers.appendSliceAssumeCapacity(numbers.items);
 
-                try expConfigBuffer.writeSlice(configuration);
+                try expConfigWriter.writeAll(configuration);
                 if (index < 4) {
-                    try expConfigBuffer.write('?');
+                    try expConfigWriter.writeByte('?');
                 }
             }
+            try expConfigWriter.flush();
             const numberSlice = try expNumbers.toOwnedSlice();
             defer allocator.free(numberSlice);
 
-            result += try count(expConfigBuffer.data, numberSlice);
+            result += try count(expConfigWriter.buffered(), numberSlice);
         }
     }
     return result;
@@ -216,9 +217,9 @@ fn brokenPossible(configuration: []const u8, start: u8, end: u8) bool {
 }
 
 fn initCacheArray(outer: usize, inner: usize, allocator: *std.mem.Allocator) !void {
-    var cacheList = try std.ArrayList([]?usize).initCapacity(allocator.*, outer);
+    var cacheList = try std.array_list.Managed([]?usize).initCapacity(allocator.*, outer);
     for (0..outer) |_| {
-        var temp = try std.ArrayList(?usize).initCapacity(allocator.*, inner);
+        var temp = try std.array_list.Managed(?usize).initCapacity(allocator.*, inner);
         for (0..inner) |_| {
             temp.appendAssumeCapacity(null);
         }
@@ -234,7 +235,7 @@ fn solveAlt(input: []const u8, allocator: *std.mem.Allocator, comptime expand: b
 
     var lines = std.mem.tokenizeScalar(u8, input, '\n');
     while (lines.next()) |line| {
-        var numbers = try std.ArrayList(u8).initCapacity(allocator.*, 6);
+        var numbers = try std.array_list.Managed(u8).initCapacity(allocator.*, 6);
         defer numbers.deinit();
         var segments = std.mem.tokenizeScalar(u8, line, ' ');
         const configuration = segments.next().?;
@@ -253,25 +254,27 @@ fn solveAlt(input: []const u8, allocator: *std.mem.Allocator, comptime expand: b
 
             result += countAlt(configuration, &numberSlice, 0, 0);
         } else {
-            var expNumbers = try std.ArrayList(u8).initCapacity(allocator.*, 30);
+            var expNumbers = try std.array_list.Managed(u8).initCapacity(allocator.*, 30);
             defer expNumbers.deinit();
 
-            var expConfigBuffer = try std.RingBuffer.init(allocator.*, configuration.len * 5 + 4);
-            defer expConfigBuffer.deinit(allocator.*);
+            var expConfigBuffer: [1024]u8 = undefined;
+            var expConfigWriter = Writer.fixed(&expConfigBuffer);
             for (0..5) |index| {
                 expNumbers.appendSliceAssumeCapacity(numbers.items);
 
-                try expConfigBuffer.writeSlice(configuration);
+                try expConfigWriter.writeAll(configuration);
                 if (index < 4) {
-                    try expConfigBuffer.write('?');
+                    try expConfigWriter.writeByte('?');
                 }
             }
+            try expConfigWriter.flush();
             var numberSlice = try expNumbers.toOwnedSlice();
             defer allocator.free(numberSlice);
 
-            try initCacheArray(expConfigBuffer.data.len, numberSlice.len + 1, allocator);
+            const expConfigValue = expConfigWriter.buffered();
+            try initCacheArray(expConfigValue.len, numberSlice.len + 1, allocator);
 
-            result += countAlt(expConfigBuffer.data, &numberSlice, 0, 0);
+            result += countAlt(expConfigValue, &numberSlice, 0, 0);
         }
     }
     allocator.free(cacheArray);

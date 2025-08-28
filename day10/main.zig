@@ -14,7 +14,7 @@ pub fn main() !void {
 }
 
 fn getGrid(input: []const u8, allocator: *std.mem.Allocator) ![][]const u8 {
-    var grid = std.ArrayList([]const u8).init(allocator.*);
+    var grid = std.array_list.Managed([]const u8).init(allocator.*);
     var lines = std.mem.tokenizeAny(u8, input, "\n");
     while (lines.next()) |line| {
         try grid.append(line);
@@ -59,7 +59,7 @@ fn solvePart1(input: []const u8, allocator: *std.mem.Allocator) !usize {
     const grid = try getGrid(input, allocator);
     defer allocator.free(grid);
     var loop = std.AutoHashMap([2]usize, void).init(allocator.*);
-    var list = std.ArrayList([2]usize).init(allocator.*);
+    var list = std.array_list.Managed([2]usize).init(allocator.*);
     defer loop.deinit();
     defer list.deinit();
     var sPosition = [2]usize{ 0, 0 };
@@ -152,7 +152,7 @@ fn solvePart2(input: []const u8, allocator: *std.mem.Allocator) !usize {
     defer loop.deinit();
     try loop.put(positionOfS, {});
 
-    var neighbourList = std.ArrayList([2]usize).init(allocator.*);
+    var neighbourList = std.array_list.Managed([2]usize).init(allocator.*);
     defer neighbourList.deinit();
     try neighbourList.append(positionOfS);
     while (neighbourList.pop()) |neighbour| {
@@ -238,9 +238,9 @@ fn solvePart2(input: []const u8, allocator: *std.mem.Allocator) !usize {
     }
 
     const intForChar = maybeS.findFirstSet().?;
-    var newGrid = try std.ArrayList([]const u8).initCapacity(allocator.*, grid.len);
+    var newGrid = try std.array_list.Managed([]const u8).initCapacity(allocator.*, grid.len);
     for (grid, 0..) |row, rowIndex| {
-        var newRow = try std.ArrayList(u8).initCapacity(allocator.*, row.len);
+        var newRow = try std.array_list.Managed(u8).initCapacity(allocator.*, row.len);
         for (row, 0..) |column, columnIndex| {
             if (rowIndex == positionOfS[0] and columnIndex == positionOfS[1]) {
                 try newRow.append(mapIntToChar(intForChar));
@@ -320,7 +320,7 @@ fn solvePart2Alt(input: []const u8, allocator: *std.mem.Allocator) !usize {
     defer loop.deinit();
     try loop.put(positionOfS, 'S');
 
-    var neighbourList = std.ArrayList([2]usize).init(allocator.*);
+    var neighbourList = std.array_list.Managed([2]usize).init(allocator.*);
     defer neighbourList.deinit();
     try neighbourList.append(positionOfS);
     while (neighbourList.pop()) |neighbour| {

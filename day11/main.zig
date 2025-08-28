@@ -23,8 +23,8 @@ inline fn solveAlt(input: []const u8, allocator: *std.mem.Allocator, comptime ex
     }
     grid.reset();
 
-    var xx = try std.ArrayList(usize).initCapacity(allocator.*, lineSize);
-    var yy = try std.ArrayList(usize).initCapacity(allocator.*, lineSize);
+    var xx = try std.array_list.Managed(usize).initCapacity(allocator.*, lineSize);
+    var yy = try std.array_list.Managed(usize).initCapacity(allocator.*, lineSize);
     for (0..lineSize) |_| {
         xx.appendAssumeCapacity(0);
         yy.appendAssumeCapacity(0);
@@ -78,9 +78,9 @@ fn solvePart2Alt(input: []const u8, allocator: *std.mem.Allocator) !usize {
 
 inline fn solve(input: []const u8, allocator: *std.mem.Allocator, comptime scale: usize) !usize {
     var result: usize = 0;
-    var emptyRows = std.ArrayList(bool).init(allocator.*);
-    var emptyColumns = std.ArrayList(bool).init(allocator.*);
-    var galaxyList = std.ArrayList([2]usize).init(allocator.*);
+    var emptyRows = std.array_list.Managed(bool).init(allocator.*);
+    var emptyColumns = std.array_list.Managed(bool).init(allocator.*);
+    var galaxyList = std.array_list.Managed([2]usize).init(allocator.*);
     defer emptyRows.deinit();
     defer emptyColumns.deinit();
     defer galaxyList.deinit();
