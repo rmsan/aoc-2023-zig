@@ -252,7 +252,15 @@ fn solvePart2(input: []const u8, allocator: *std.mem.Allocator) !usize {
         }
         try newGrid.append(try newRow.toOwnedSlice());
     }
+    const oldGrid = grid;
     grid = try newGrid.toOwnedSlice();
+
+    allocator.free(oldGrid);
+    defer {
+        for (grid) |allocated_row| {
+            allocator.free(allocated_row);
+        }
+    }
 
     var outside = std.AutoHashMap([2]usize, void).init(allocator.*);
     defer outside.deinit();
@@ -428,9 +436,7 @@ fn solvePart2Alt(input: []const u8, allocator: *std.mem.Allocator) !usize {
 }
 
 test "test-input" {
-    var gpa = std.heap.ArenaAllocator.init(std.heap.page_allocator);
-    defer gpa.deinit();
-    var allocator = gpa.allocator();
+    var allocator = std.testing.allocator;
     const fileContent = @embedFile("test.txt");
 
     const part1 = try solvePart1(fileContent, &allocator);
